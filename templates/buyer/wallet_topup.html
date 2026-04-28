@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Add Money — QuickDealr Wallet{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem;padding-bottom:4rem;max-width:720px">
+  <div class="checkout-header">
+    <a href="{{ url_for('wallet.wallet_home') }}" class="back-link">&#8592; Back to Wallet</a>
+    <h1>Add Money to Wallet</h1>
+  </div>
+
+  <!-- Info: approval required -->
+  <div class="topup-info-banner">
+    <strong> Approval Required</strong>
+    Your request will be reviewed by admin before the balance is credited.
+    Usually approved within a few hours.
+  </div>
+
+  <div class="topup-balance-bar">
+    <span>Current Balance</span>
+    <strong>₹{{ "{:,.2f}".format(wallet) }}</strong>
+  </div>
+
+  <form method="POST" action="{{ url_for('wallet.topup') }}" id="topupForm">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="checkout-layout" style="grid-template-columns:1fr 300px">
+      <div class="checkout-left">
+
+        <!-- Amount -->
+        <div class="checkout-card">
+          <h3>Enter Amount</h3>
+          <div class="fg">
+            <label>Amount (&#8377;) *</label>
+            <input type="number" name="amount" id="topupAmount" min="10" max="100000"
+                   step="1" placeholder="Minimum ₹10" required oninput="updateSummary(this.value)">
+          </div>
+          <div class="quick-amounts">
+            <button type="button" class="quick-amt-btn" onclick="setAmt(100)">+100</button>
+            <button type="button" class="quick-amt-btn" onclick="setAmt(500)">+500</button>
+            <button type="button" class="quick-amt-btn" onclick="setAmt(1000)">+1000</button>
+            <button type="button" class="quick-amt-btn" onclick="setAmt(2000)">+2000</button>
+            <button type="button" class="quick-amt-btn" onclick="setAmt(5000)">+5000</button>
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <div class="checkout-card">
+          <h3>Payment Method</h3>
+          <div class="payment-tabs">
+            <label class="pay-tab active" id="tab-card" onclick="selectPay('card')">
+              <input type="radio" name="payment_method" value="card" checked>
+              <span class="pay-tab-icon"></span><span>Card</span>
+            </label>
+            <label class="pay-tab" id="tab-qr" onclick="selectPay('qr')">
+              <input type="radio" name="payment_method" value="qr">
+              <span class="pay-tab-icon"></span><span>UPI / QR</span>
+            </label>
+          </div>
+
+          <!-- Card -->
+          <div class="pay-panel" id="panel-card">
+            <div class="card-visual">
+              <div class="card-chip">&#9646;&#9646;&#9646;</div>
+              <div class="card-number-display" id="cardNumDisplay">.... .... .... ....</div>
+              <div class="card-bottom-row">
+                <div><div class="card-label">CARDHOLDER</div><div id="cardNameDisplay">YOUR NAME</div></div>
+                <div><div class="card-label">EXPIRES</div><div id="cardExpDisplay">MM/YY</div></div>
+              </div>
+            </div>
+            <div class="card-form">
+              <div class="fg">
+                <label>Card Number *</label>
+                <input type="text" name="card_number" id="cardNum"
+                       placeholder="0000 0000 0000 0000" maxlength="19"
+                       oninput="formatCard(this)" autocomplete="cc-number">
+              </div>
+              <div class="fg">
+                <label>Cardholder Name *</label>
+                <input type="text" name="card_name" id="cardName" placeholder="Name on card"
+                       oninput="document.getElementById('cardNameDisplay').textContent=this.value.toUpperCase()||'YOUR NAME'"
+                       autocomplete="cc-name">
+              </div>
+              <div class="card-row-2">
+                <div class="fg">
+                  <label>Expiry (MM/YY) *</label>
+                  <input type="text" name="expiry" id="cardExp" placeholder="MM/YY"
+                         maxlength="5" oninput="formatExpiry(this)" autocomplete="cc-exp">
+                </div>
+                <div class="fg">
+                  <label>CVV *</label>
+                  <div class="pw-wrap">
+                    <input type="password" name="cvv" id="cvvField" placeholder="..." maxlength="4" autocomplete="cc-csc">
+                    <button type="button" class="pw-toggle" onclick="togglePw('cvvField',this)">
+                      <svg class="eye-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR -->
+          <div class="pay-panel hidden" id="panel-qr">
+            <div class="qr-pay-section">
+              {% if qr and qr['qr_image'] %}
+              <img src="{{ qr['qr_image'] }}" alt="QR" class="qr-image">
+              {% else %}
+              <div class="qr-placeholder">QR code not configured yet.</div>
+              {% endif %}
+              <div class="qr-instructions">
+                <h4>How to pay via UPI</h4>
+                <p>1. Open GPay / PhonePe / Paytm</p>
+                <p>2. Scan the QR code</p>
+                <p>3. Enter the amount you chose above</p>
+                <p>4. Copy the Transaction ID for your records</p>
+                {% if qr and qr['upi_id'] %}<p>UPI ID: <code>{{ qr['upi_id'] }}</code></p>{% endif %}
+              </div>
+              <div class="fg" style="width:100%">
+                <label>Transaction ID (optional)</label>
+                <input type="text" name="transaction_id" id="txnField"
+                       placeholder="e.g. TXN123456789012 (for your records)">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="checkout-right">
+        <div class="price-summary-card">
+          <h3>Summary</h3>
+          <div class="price-row"><span>Adding</span><span id="summaryAmt"><strong>&#8377;0.00</strong></span></div>
+          <div class="price-row"><span>Current balance</span><span>&#8377;{{ "{:,.2f}".format(wallet) }}</span></div>
+          <div class="price-total-row"><span>New balance</span><span id="summaryNew">&#8377;{{ "{:,.2f}".format(wallet) }}</span></div>
+          <div style="height:.75rem"></div>
+          <button type="submit" class="btn-place-order" id="topupBtn">
+            <span id="btnText">Submit Request &#8594;</span>
+            <span id="btnSpinner" style="display:none">Submitting...</span>
+          </button>
+        </div>
+        <div class="secure-badges">
+          <span> Secure</span>
+          <span>&#10003; Encrypted</span>
+          <span>&#10003; Admin Verified</span>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Auto-approve notice -->
+  <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px 18px;margin-top:20px;display:flex;align-items:flex-start;gap:10px">
+    <svg width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:1px"><polyline points="20 6 9 17 4 12"/></svg>
+    <div style="font-size:.8rem;color:#22c55e">
+      <strong>Instant Top-Up:</strong> Your wallet is credited immediately after payment — no approval wait time.
+    </div>
+  </div>
+</div>
+
+<script>
+var currentBal = {{ wallet|float }};
+function setAmt(n){ document.getElementById('topupAmount').value=n; updateSummary(n); }
+function updateSummary(v) {
+  var n = parseFloat(v)||0;
+  document.getElementById('summaryAmt').innerHTML = '<strong>&#8377;'+n.toFixed(2)+'</strong>';
+  document.getElementById('summaryNew').textContent = '&#8377;'+(currentBal+n).toFixed(2);
+}
+function selectPay(m) {
+  ['card','qr'].forEach(function(x){
+    document.getElementById('panel-'+x).classList.toggle('hidden',x!==m);
+    document.getElementById('tab-'+x).classList.toggle('active',x===m);
+  });
+}
+function formatCard(inp) {
+  var v=inp.value.replace(/\D/g,'').substring(0,16);
+  inp.value=v.match(/.{1,4}/g)?v.match(/.{1,4}/g).join(' '):v;
+  var d=v.padEnd(16,'.');
+  document.getElementById('cardNumDisplay').textContent=d.slice(0,4)+' '+d.slice(4,8)+' '+d.slice(8,12)+' '+d.slice(12,16);
+}
+function formatExpiry(inp) {
+  var v=inp.value.replace(/\D/g,'');
+  if(v.length>=3) v=v.substring(0,2)+'/'+v.substring(2,4);
+  inp.value=v;
+  document.getElementById('cardExpDisplay').textContent=inp.value||'MM/YY';
+}
+function togglePw(id,btn) {
+  var inp=document.getElementById(id);
+  inp.type=inp.type==='text'?'password':'text';
+  btn.querySelector('.eye-icon').style.opacity=inp.type==='text'?'0.4':'1';
+}
+document.getElementById('topupForm').addEventListener('submit',function(e){
+  var amount=parseFloat(document.getElementById('topupAmount').value||0);
+  if(!amount||amount<10){e.preventDefault();alert('Minimum top-up is ₹10.');return;}
+  if(amount>100000){e.preventDefault();alert('Maximum is ₹1,00,000.');return;}
+  var method=document.querySelector('input[name="payment_method"]:checked').value;
+  if(method==='card'){
+    var num=(document.getElementById('cardNum').value||'').replace(/\s/g,'');
+    if(num.length!==16){e.preventDefault();alert('Enter valid 16-digit card number.');return;}
+    var exp=document.getElementById('cardExp').value||'';
+    if(!/^\d{2}\/\d{2}$/.test(exp)){e.preventDefault();alert('Enter valid expiry MM/YY.');return;}
+    var cvv=document.getElementById('cvvField').value||'';
+    if(!/^\d{3,4}$/.test(cvv)){e.preventDefault();alert('Enter valid CVV.');return;}
+  }
+  if(method==='qr'){
+    var txn=(document.getElementById('txnField').value||'').trim();
+    if(txn.length<5){e.preventDefault();alert('Enter transaction ID.');return;}
+  }
+  document.getElementById('btnText').style.display='none';
+  document.getElementById('btnSpinner').style.display='inline';
+  document.getElementById('topupBtn').disabled=true;
+});
+</script>
+{% endblock %}

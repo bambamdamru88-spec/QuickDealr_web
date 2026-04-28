@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+{% block title %}{{ p['name'] }} — Auction | QuickDealr{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auction-page{max-width:1120px;margin:0 auto;padding:20px 16px}
+  .breadcrumb{font-size:.78rem;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+  .breadcrumb a{color:var(--muted)}
+  .breadcrumb a:hover{color:var(--text)}
+  .breadcrumb .sep{opacity:.4}
+
+  .auction-layout{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+  @media(max-width:900px){.auction-layout{grid-template-columns:1fr}}
+
+  /* Cards */
+  .acard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+  .acard-head{padding:14px 18px;border-bottom:1px solid var(--border);font-weight:600;font-size:.85rem;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .acard-body{padding:18px}
+
+  /* Auction image */
+  .auction-main-img{width:100%;max-height:380px;object-fit:cover;display:block;background:var(--surface2)}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;background:#dc2626;color:#fff;font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.05em}
+  .live-dot{width:6px;height:6px;background:#fff;border-radius:50%;animation:blink 1s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* Bid feed */
+  .bid-feed{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding:10px 18px}
+  .bid-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;font-size:.8rem;background:var(--surface2)}
+  .bid-row.bid-top{background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.2)}
+  .bid-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0}
+  .bid-user{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+  .bid-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bid-amt{font-weight:700;color:var(--green);font-family:var(--mono,monospace);font-size:.82rem;flex-shrink:0}
+  .bid-time{font-size:.68rem;color:var(--muted);flex-shrink:0}
+  .no-bids{padding:20px;text-align:center;color:var(--muted);font-size:.82rem}
+
+  /* Leaderboard */
+  .lb-row{display:flex;align-items:center;gap:10px;padding:8px 18px;font-size:.82rem;border-bottom:1px solid var(--border)}
+  .lb-row:last-child{border-bottom:none}
+  .lb-rank{font-weight:700;width:24px;text-align:center;color:var(--muted)}
+  .lb-rank.gold{color:#f59e0b}
+  .lb-rank.silver{color:#94a3b8}
+  .lb-rank.bronze{color:#b45309}
+  .lb-name{flex:1}
+  .lb-amt{font-family:var(--mono,monospace);font-weight:700;color:var(--accent)}
+  .lb-status{font-size:.68rem}
+
+  /* Countdown */
+  .countdown-wrap{display:flex;gap:6px;justify-content:center;padding:14px 0}
+  .cd-block{text-align:center;background:var(--surface2);border-radius:7px;padding:8px 12px;min-width:52px}
+  .cd-num{font-size:1.5rem;font-weight:700;font-family:var(--mono,monospace);color:var(--text);line-height:1}
+  .cd-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+  .cd-sep{font-size:1.4rem;font-weight:700;color:var(--muted);align-self:center;margin-bottom:10px}
+  .countdown-wrap.urgent .cd-num{color:#ef4444}
+
+  /* Bid form */
+  .current-bid-display{text-align:center;padding:14px 0 8px}
+  .current-bid-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .current-bid-amount{font-size:2rem;font-weight:800;color:var(--text);letter-spacing:-.04em;font-family:var(--mono,monospace)}
+  .current-bid-amount span{color:var(--accent)}
+  .start-price-note{font-size:.72rem;color:var(--muted)}
+
+  .bid-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:var(--r,8px);overflow:hidden;margin-bottom:8px;transition:border-color .2s}
+  .bid-input-wrap:focus-within{border-color:var(--accent)}
+  .bid-rupee{padding:0 10px 0 14px;font-size:1rem;font-weight:600;color:var(--muted)}
+  .bid-input-wrap input{flex:1;border:none;background:transparent;color:var(--text);font-size:1.05rem;font-weight:600;padding:10px 0;outline:none;font-family:var(--mono,monospace)}
+  .bid-quick-btns{display:flex;gap:6px;margin-bottom:12px}
+  .qbid{flex:1;padding:6px 0;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+  .qbid:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,110,247,.07)}
+  .btn-place-bid{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--r,8px);font-size:.92rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+  .btn-place-bid:hover:not(:disabled){background:#3d5ce5;transform:translateY(-1px)}
+  .btn-place-bid:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  /* Dwell / anti-bot */
+  .dwell-bar-wrap{height:3px;background:var(--border);border-radius:2px;margin:.6rem 0;overflow:hidden}
+  .dwell-bar{height:100%;background:var(--accent);width:0%;transition:width .3s linear}
+  .bid-locked-msg{text-align:center;font-size:.75rem;color:var(--muted);padding:.4rem;background:var(--surface2);border-radius:6px;margin:.5rem 0}
+
+  /* Watch button */
+  .btn-watch{width:100%;margin-top:10px;padding:9px;border:1.5px solid var(--border);border-radius:var(--r,8px);background:transparent;color:var(--muted);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit}
+  .btn-watch:hover,.btn-watch.watching{border-color:var(--accent);color:var(--accent);background:rgba(79,110,247,.07)}
+
+  /* Socket badge */
+  .sio-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-weight:600;color:var(--muted);background:var(--surface2);border-radius:20px;padding:2px 8px}
+  .sio-badge.live{color:#15803d;background:rgba(34,197,94,.1)}
+
+  /* Live chat */
+  .live-chat-msgs{height:180px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px}
+  .lc-msg{font-size:.78rem;padding:4px 0}
+  .lc-msg.system{color:var(--muted);font-style:italic}
+  .lc-user{font-weight:600;color:var(--accent)}
+  .lc-input-row{display:flex;gap:6px;padding:10px}
+  .lc-input-row input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 10px;font-size:.8rem;outline:none;font-family:inherit}
+  .lc-input-row input:focus{border-color:var(--accent)}
+  .lc-send{padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit}
+
+  /* Post-auction winner panel */
+  .auction-ended-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px}
+  .winner-card{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(79,110,247,.08));border:1px solid rgba(34,197,94,.25);border-radius:var(--r2);padding:20px;text-align:center}
+  .winner-label{font-size:.72rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+  .winner-name{font-size:1.3rem;font-weight:700;color:var(--text)}
+  .winner-bid{font-size:1.6rem;font-weight:800;color:var(--accent);font-family:var(--mono,monospace);margin:4px 0}
+  .pay-now-card{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:var(--r2);padding:18px;margin-top:14px}
+  .pay-now-card h4{font-size:.9rem;font-weight:700;color:var(--amber,#f59e0b);margin-bottom:6px}
+  .pay-now-card p{font-size:.8rem;color:var(--muted);margin-bottom:12px}
+  .btn-pay-now{width:100%;padding:11px;background:#f59e0b;color:#fff;border:none;border-radius:var(--r,8px);font-size:.92rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+  .btn-pay-now:hover{background:#d97706}
+  .deadline-timer{font-size:.78rem;color:var(--red,#ef4444);margin-top:6px}
+  .wallet-balance-note{font-size:.75rem;color:var(--muted);margin-top:4px}
+  .auction-over-msg{text-align:center;padding:20px;color:var(--muted);font-size:.88rem}
+  .failover-notice{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:7px;padding:10px 14px;font-size:.78rem;color:var(--red,#ef4444);margin-top:10px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auction-page">
+  <nav class="breadcrumb">
+    <a href="{{ url_for('buyer.home') }}">Home</a>
+    <span class="sep">/</span>
+    <a href="{{ url_for('buyer.auctions_list') }}">Auctions</a>
+    <span class="sep">/</span>
+    <span>{{ p['name'][:40] }}</span>
+  </nav>
+
+  <div class="auction-layout">
+    <!-- LEFT COLUMN -->
+    <div>
+      <!-- Product image -->
+      <div class="acard" style="margin-bottom:16px">
+        <img src="{{ p['image'] or 'https://placehold.co/700x380/1e2333/4a5168?text=Auction' }}"
+             alt="{{ p['name'] }}" class="auction-main-img">
+      </div>
+
+      <!-- Bid History Feed -->
+      <div class="acard" style="margin-bottom:16px">
+        <div class="acard-head">
+          <span>Bid History</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="bidTotal" style="font-size:.75rem;color:var(--muted)">{{ p['bid_count'] }} bids</span>
+            {% if not ended %}
+            <span class="sio-badge" id="sioStatus">Connecting...</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="bid-feed" id="bidFeed">
+          {% for bid in bids %}
+          <div class="bid-row {% if loop.first %}bid-top{% endif %}">
+            <div class="bid-user">
+              <div class="bid-avatar">{{ bid['username'][0].upper() }}</div>
+              <span>{{ bid['username'] }}</span>
+            </div>
+            <span class="bid-amt">&#8377;{{ "{:,.2f}".format(bid['amount']) }}</span>
+            <span class="bid-time">{{ bid['created_at'][11:16] if bid['created_at'] else '' }}</span>
+          </div>
+          {% else %}
+          <div class="no-bids">No bids placed yet — be the first!</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Post-auction full leaderboard -->
+      {% if ended and full_leaderboard %}
+      <div class="acard" style="margin-bottom:16px">
+        <div class="acard-head">Final Leaderboard</div>
+        {% for lb in full_leaderboard %}
+        <div class="lb-row">
+          <span class="lb-rank {% if lb['rank']==1 %}gold{% elif lb['rank']==2 %}silver{% elif lb['rank']==3 %}bronze{% endif %}">
+            #{{ lb['rank'] }}
+          </span>
+          <span class="lb-name">{{ lb['winner_username'] }}</span>
+          <span class="lb-amt">&#8377;{{ "{:,.0f}".format(lb['bid_amount']) }}</span>
+          <span class="lb-status">
+            {% if lb['status'] == 'paid' %}<span style="font-size:.68rem;background:rgba(34,197,94,.1);color:#22c55e;padding:2px 7px;border-radius:20px">Paid</span>
+            {% elif lb['status'] == 'pending_payment' %}<span style="font-size:.68rem;background:rgba(245,158,11,.1);color:#f59e0b;padding:2px 7px;border-radius:20px">Pending</span>
+            {% elif lb['status'] == 'failed' %}<span style="font-size:.68rem;background:rgba(239,68,68,.1);color:#ef4444;padding:2px 7px;border-radius:20px">Failed</span>
+            {% else %}<span style="font-size:.68rem;color:var(--muted)">—</span>{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% elif not ended and leaders %}
+      <div class="acard" style="margin-bottom:16px">
+        <div class="acard-head">Top Bidders</div>
+        {% for lb in leaders %}
+        <div class="lb-row">
+          <span class="lb-rank {% if loop.index==1 %}gold{% elif loop.index==2 %}silver{% elif loop.index==3 %}bronze{% endif %}">#{{ loop.index }}</span>
+          <span class="lb-name">{{ lb['username'] }}</span>
+          <span class="lb-amt">&#8377;{{ "{:,.0f}".format(lb['top']) }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Live Chat (only during active auction) -->
+      {% if not ended %}
+      <div class="acard">
+        <div class="acard-head">
+          <span>Live Chat</span>
+          <span style="font-size:.7rem;color:#22c55e;background:rgba(34,197,94,.1);padding:2px 8px;border-radius:20px">Live</span>
+        </div>
+        <div class="live-chat-msgs" id="liveChatMsgs">
+          <div class="lc-msg system">Welcome to the auction chat!</div>
+          {% for m in chat %}
+          <div class="lc-msg {% if m['is_system'] %}system{% endif %}">
+            {% if not m['is_system'] %}<span class="lc-user">{{ m['username'] }}</span> — {% endif %}{{ m['message'] }}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="lc-input-row">
+          <input type="text" id="lcInput" placeholder="Type a message..." maxlength="200" onkeydown="sendLCMsg(event)">
+          <button onclick="sendLCMsg()" class="lc-send">Send</button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div>
+      <!-- Auction Title & Info -->
+      <div class="acard" style="margin-bottom:16px">
+        <div class="acard-body">
+          {% if not ended %}
+          <div style="margin-bottom:10px">
+            <span class="live-badge"><span class="live-dot"></span>LIVE AUCTION</span>
+          </div>
+          {% else %}
+          <div style="margin-bottom:10px">
+            <span style="font-size:.72rem;font-weight:700;color:var(--muted);background:var(--surface2);padding:3px 10px;border-radius:20px">AUCTION ENDED</span>
+          </div>
+          {% endif %}
+
+          <h1 style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.3">{{ p['name'] }}</h1>
+          <p style="font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:14px">{{ p['description'] }}</p>
+
+          <div style="display:flex;gap:12px;font-size:.78rem;color:var(--muted);margin-bottom:14px">
+            <div>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span id="watcherCount">{{ p['watcher_count'] }}</span> watching
+            </div>
+            <div>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+              <span id="bidCountDisplay">{{ p['bid_count'] }}</span> bids
+            </div>
+            <div>
+              Leader: <strong id="leaderDisplay">{{ p['highest_bidder'] or '—' }}</strong>
+            </div>
+          </div>
+
+          <!-- Countdown (only when active) -->
+          {% if not ended %}
+          <div class="countdown-wrap" id="bigCountdown" data-secs="{{ secs }}">
+            <div class="cd-block"><div class="cd-num" id="cdHours">00</div><div class="cd-lbl">HRS</div></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-block"><div class="cd-num" id="cdMins">00</div><div class="cd-lbl">MIN</div></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-block"><div class="cd-num" id="cdSecs">00</div><div class="cd-lbl">SEC</div></div>
+          </div>
+          {% endif %}
+
+          <!-- Current bid display -->
+          <div class="current-bid-display">
+            <div class="current-bid-label">{{ 'Final Bid' if ended else 'Current Highest Bid' }}</div>
+            <div class="current-bid-amount" id="currentBidDisplay">
+              &#8377;<span>{{ "{:,.2f}".format(p['current_bid'] or p['start_price']) }}</span>
+            </div>
+            <div class="start-price-note">Starting price: &#8377;{{ "{:,.2f}".format(p['start_price']) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POST-AUCTION: Winner / Pay Now -->
+      {% if ended %}
+        {% if winner %}
+        <div class="winner-card" style="margin-bottom:14px">
+          <div class="winner-label">Auction Winner</div>
+          <div class="winner-name">{{ winner['winner_username'] }}</div>
+          <div class="winner-bid">&#8377;{{ "{:,.2f}".format(winner['bid_amount']) }}</div>
+          {% if winner['status'] == 'paid' %}
+          <div style="font-size:.8rem;color:#22c55e;margin-top:6px;font-weight:600">Payment confirmed</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Pay Now: only shown to the current pending winner -->
+        {% if my_win %}
+        <div class="pay-now-card" style="margin-bottom:14px">
+          <h4>Payment Required</h4>
+          <p>You won this auction! Please deposit &#8377;{{ "{:,.2f}".format(my_win['bid_amount']) }} to confirm your purchase.</p>
+          {% if wallet >= my_win['bid_amount'] %}
+          <form method="POST" action="{{ url_for('buyer.auction_pay', pid=p['id']) }}" onsubmit="return confirm('Pay &#8377;{{ '%.2f'|format(my_win['bid_amount']) }} from your wallet?')">
+            <button type="submit" class="btn-pay-now">
+              Pay Now — &#8377;{{ "{:,.2f}".format(my_win['bid_amount']) }}
+            </button>
+          </form>
+          <div class="wallet-balance-note">Wallet balance: &#8377;{{ "{:,.2f}".format(wallet) }}</div>
+          {% else %}
+          <a href="{{ url_for('wallet.topup') }}" class="btn-pay-now" style="display:block;text-align:center;text-decoration:none">
+            Add Money to Wallet
+          </a>
+          <div class="wallet-balance-note" style="color:var(--red,#ef4444)">
+            Need &#8377;{{ "{:,.2f}".format(my_win['bid_amount'] - wallet) }} more. Current balance: &#8377;{{ "{:,.2f}".format(wallet) }}
+          </div>
+          {% endif %}
+          {% if my_win['payment_deadline'] %}
+          <div class="deadline-timer">Pay before: {{ my_win['payment_deadline'][:16] }}</div>
+          {% endif %}
+          <div class="failover-notice">
+            If payment is not made before the deadline, the auction will be offered to the next bidder.
+          </div>
+        </div>
+        {% elif ended and not winner %}
+        <div class="auction-over-msg">No bids were placed on this auction.</div>
+        {% elif ended and winner and not my_win %}
+        <div style="text-align:center;padding:16px;font-size:.82rem;color:var(--muted)">
+          This auction has concluded. Winner has been notified.
+        </div>
+        {% endif %}
+
+      <!-- ACTIVE AUCTION: Bid Form -->
+      {% else %}
+      <div class="acard" style="margin-bottom:14px">
+        <div class="acard-body">
+          <form method="POST" action="{{ url_for('buyer.place_bid', pid=p['id']) }}" id="bidForm">
+            <input type="hidden" name="atoken" id="atokenField" value="{{ atoken }}">
+            <div class="bid-input-wrap">
+              <span class="bid-rupee">&#8377;</span>
+              <input type="number" name="amount" id="bidAmountInput"
+                     step="1" min="{{ (p['current_bid'] or p['start_price'])|int + 1 }}"
+                     value="{{ (p['current_bid'] or p['start_price'])|int + 50 }}" required>
+            </div>
+            <div class="bid-quick-btns">
+              <button type="button" class="qbid" onclick="addBid(50)">+&#8377;50</button>
+              <button type="button" class="qbid" onclick="addBid(100)">+&#8377;100</button>
+              <button type="button" class="qbid" onclick="addBid(500)">+&#8377;500</button>
+            </div>
+            <button type="submit" class="btn-place-bid bid-locked" id="bidBtn">
+              Place Bid
+            </button>
+            <div id="bidLockMsg" class="bid-locked-msg">
+              Stay on page {{ dwell }}s and interact to unlock bidding...
+            </div>
+            <div class="dwell-bar-wrap"><div class="dwell-bar" id="dwellBar"></div></div>
+          </form>
+          <div style="font-size:.72rem;color:var(--muted);margin-top:10px;text-align:center;line-height:1.5">
+            No wallet balance needed to bid. Payment is only required if you win.
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-watch {% if is_watching %}watching{% endif %}" id="watchBtn"
+              onclick="toggleWatch({{ p['id'] }})">
+        {{ 'Watching' if is_watching else '+ Watch Auction' }}
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not ended %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+{% endif %}
+<script>
+const AUCTION_ID   = {{ p['id'] }};
+const CURRENT_USER = {{ session.get('username') | tojson }};
+const CURRENT_UID  = {{ session.get('user_id') or 'null' }};
+const DWELL_SECS   = {{ dwell if not ended else 0 }};
+const AUCTION_ENDED = {{ 'true' if ended else 'false' }};
+let countdownSecs = {{ secs }};
+
+// Countdown timer
+function tickCountdown() {
+  if (countdownSecs <= 0) {
+    const wrap = document.getElementById('bigCountdown');
+    if (wrap) wrap.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.85rem;padding:10px">Auction has ended</div>';
+    const btn = document.getElementById('bidBtn');
+    if (btn) btn.disabled = true;
+    return;
+  }
+  const h = Math.floor(countdownSecs / 3600);
+  const m = Math.floor((countdownSecs % 3600) / 60);
+  const s = countdownSecs % 60;
+  const el = id => document.getElementById(id);
+  if (el('cdHours')) el('cdHours').textContent = String(h).padStart(2, '0');
+  if (el('cdMins'))  el('cdMins').textContent  = String(m).padStart(2, '0');
+  if (el('cdSecs'))  el('cdSecs').textContent  = String(s).padStart(2, '0');
+  const wrap = document.getElementById('bigCountdown');
+  if (countdownSecs <= 300 && wrap) wrap.classList.add('urgent');
+  countdownSecs--;
+}
+if (!AUCTION_ENDED) { setInterval(tickCountdown, 1000); tickCountdown(); }
+
+// Quick bid increment
+function addBid(n) {
+  const i = document.getElementById('bidAmountInput');
+  if (i) i.value = (parseInt(i.value) || 0) + n;
+}
+
+// Anti-bot dwell + interaction unlock
+if (!AUCTION_ENDED) {
+  let interacted = false, dwellElapsed = 0;
+  const bidBtn = document.getElementById('bidBtn');
+  const lockMsg = document.getElementById('bidLockMsg');
+  const dwellBar = document.getElementById('dwellBar');
+
+  function tryUnlock() {
+    if (dwellElapsed >= DWELL_SECS && interacted) {
+      if (bidBtn) { bidBtn.classList.remove('bid-locked'); bidBtn.disabled = false; }
+      if (lockMsg) lockMsg.style.display = 'none';
+    }
+  }
+  const dt = setInterval(() => {
+    if (dwellElapsed >= DWELL_SECS) { clearInterval(dt); return; }
+    dwellElapsed++;
+    if (dwellBar) dwellBar.style.width = (dwellElapsed / DWELL_SECS * 100) + '%';
+    tryUnlock();
+  }, 1000);
+
+  function markInt() {
+    if (interacted) return;
+    interacted = true;
+    fetch(`/api/interact/${AUCTION_ID}`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } }).catch(() => {});
+    tryUnlock();
+  }
+  document.addEventListener('click', markInt, { once: true });
+  document.addEventListener('scroll', markInt, { once: true });
+}
+
+// SocketIO (only when auction is live)
+if (!AUCTION_ENDED) {
+  const socket = io();
+  const sio = document.getElementById('sioStatus');
+
+  socket.on('connect', () => {
+    if (sio) { sio.textContent = 'Live'; sio.classList.add('live'); }
+    socket.emit('join_auction', { product_id: AUCTION_ID });
+    if (CURRENT_UID) socket.emit('join_user_room', { user_id: CURRENT_UID });
+  });
+  socket.on('disconnect', () => {
+    if (sio) { sio.textContent = 'Reconnecting...'; sio.classList.remove('live'); }
+  });
+
+  socket.on('bid_update', (d) => {
+    if (d.product_id !== AUCTION_ID) return;
+    d._notify = true;
+    applyBidUpdate(d);
+  });
+
+  socket.on('auction_status', (d) => {
+    countdownSecs = d.seconds_left;
+    const wc = document.getElementById('watcherCount');
+    if (wc) wc.textContent = d.watcher_count;
+    // Also sync bid display in case we missed a bid_update
+    if (d.current_bid !== undefined) applyBidUpdate(d);
+  });
+
+  socket.on('notification', (d) => {
+    if (typeof showToast === 'function') showToast(d.message, 'error');
+  });
+
+  socket.on('chat_message', (d) => {
+    const box = document.getElementById('liveChatMsgs');
+    if (!box) return;
+    const div = document.createElement('div');
+    div.className = 'lc-msg' + (d.is_system ? ' system' : '');
+    div.innerHTML = d.is_system ? d.message : `<span class="lc-user">${d.username}</span> — ${d.message}`;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  });
+
+  setInterval(() => socket.emit('ping_auction', { product_id: AUCTION_ID }), 8000);
+
+  // Live chat send
+  function sendLCMsg(event) {
+    if (event && event.type === 'keydown' && event.key !== 'Enter') return;
+    const inp = document.getElementById('lcInput');
+    if (!inp || !inp.value.trim()) return;
+    socket.emit('chat_message', { product_id: AUCTION_ID, username: CURRENT_USER, user_id: CURRENT_UID, message: inp.value.trim() });
+    inp.value = '';
+  }
+  window.sendLCMsg = sendLCMsg;
+}
+
+// ── HTTP polling fallback (runs always — catches missed socket events) ──
+let _lastBidCount = {{ bids|length if bids else 0 }};
+let _pollFailures = 0;
+
+async function pollAuctionStatus() {
+  try {
+    const r = await fetch(`/api/auction_status/${AUCTION_ID}`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.data) return;
+    _pollFailures = 0;
+    const data = d.data;
+    // Only apply update if bid count changed (avoids unnecessary flicker)
+    if (data.bid_count !== _lastBidCount) {
+      _lastBidCount = data.bid_count;
+      applyBidUpdate(data);
+    }
+    // Always sync countdown from server to prevent drift
+    if (data.seconds_left > 0) countdownSecs = data.seconds_left;
+  } catch(e) {
+    _pollFailures++;
+  }
+}
+
+// Shared function that updates all bid-related UI elements
+function applyBidUpdate(d) {
+  const el = id => document.getElementById(id);
+  // Current bid amount
+  const bidDisp = el('currentBidDisplay');
+  if (bidDisp) {
+    const sp = bidDisp.querySelector('span');
+    if (sp) sp.textContent = parseFloat(d.current_bid).toFixed(2);
+  }
+  // Bid count
+  if (el('bidCountDisplay')) el('bidCountDisplay').textContent = d.bid_count;
+  if (el('bidTotal')) el('bidTotal').textContent = d.bid_count + ' bids';
+  // Leader
+  if (el('leaderDisplay')) el('leaderDisplay').textContent = d.highest_bidder || '—';
+  // Watcher count
+  if (el('watcherCount') && d.watcher_count !== undefined)
+    el('watcherCount').textContent = d.watcher_count;
+  // Sync countdown
+  if (d.seconds_left !== undefined && d.seconds_left > 0) countdownSecs = d.seconds_left;
+  // Update bid input floor
+  const inp = el('bidAmountInput');
+  if (inp) {
+    inp.min = Math.ceil(d.current_bid) + 1;
+    if (parseInt(inp.value) <= d.current_bid) inp.value = Math.ceil(d.current_bid) + 50;
+  }
+  // Append to live feed
+  const feed = el('bidFeed');
+  if (feed && d.highest_bidder) {
+    feed.querySelectorAll('.bid-top').forEach(e => e.classList.remove('bid-top'));
+    const row = document.createElement('div');
+    row.className = 'bid-row bid-top';
+    row.innerHTML = `<div class="bid-user"><div class="bid-avatar">${d.highest_bidder[0].toUpperCase()}</div><span>${d.highest_bidder}</span></div><span class="bid-amt">&#8377;${parseFloat(d.current_bid).toFixed(2)}</span><span class="bid-time">${new Date().toTimeString().slice(0,5)}</span>`;
+    const ph = feed.querySelector('.no-bids');
+    if (ph) ph.remove();
+    // Only add row if it's a new bid (avoid duplicates on re-render)
+    const topRow = feed.querySelector('.bid-row');
+    const topAmt = topRow ? topRow.querySelector('.bid-amt')?.textContent : '';
+    if (!topAmt || parseFloat(topAmt.replace(/[^\d.]/g,'')) !== parseFloat(d.current_bid)) {
+      feed.insertBefore(row, feed.firstChild);
+    }
+  }
+  if (typeof showToast === 'function' && d._notify)
+    showToast(`New bid &#8377;${parseFloat(d.current_bid).toFixed(2)} by ${d.highest_bidder}`, 'success');
+}
+
+if (!AUCTION_ENDED) {
+  // Poll every 5 seconds as a reliable fallback
+  setInterval(pollAuctionStatus, 5000);
+  // Initial poll on page load to get fresh data immediately
+  pollAuctionStatus();
+}
+
+// Watch toggle
+async function toggleWatch(pid) {
+  const r = await fetch(`/watch/${pid}`, { method: 'POST' });
+  const d = await r.json();
+  const btn = document.getElementById('watchBtn');
+  if (btn) btn.textContent = d.watching ? 'Watching' : '+ Watch Auction';
+  if (btn) btn.classList.toggle('watching', d.watching);
+}
+</script>
+{% endblock %}

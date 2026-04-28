@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Sign In — QuickDealr</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;--border-focus:#4f6ef7;--text:#c9d1d9;--text-light:#f0f6fc;--text-muted:#8b949e;--accent:#4f6ef7;--accent-glow:rgba(79,110,247,.2);--green:#2ea043;--red:#f85149;--radius:10px;--radius-sm:6px;--font:'DM Sans',sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);min-height:100vh;display:flex;overflow-x:hidden;position:relative}
+    /* ── Admin dark grey/black gradient background ── */
+    .auth-bg{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 25%,#16213e 50%,#1a1a2e 75%,#0a0a0a 100%);background-size:400% 400%;animation:gradientShift 16s ease infinite}
+    @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.18;animation:blobFloat 10s ease-in-out infinite}
+    .blob-1{width:500px;height:500px;background:#374151;top:-100px;left:-120px;animation-delay:0s}
+    .blob-2{width:400px;height:400px;background:#1f2937;bottom:-80px;left:10%;animation-delay:-4s}
+    .blob-3{width:320px;height:320px;background:#111827;top:25%;left:5%;animation-delay:-8s}
+    @keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(25px,-18px) scale(1.04)}66%{transform:translate(-18px,22px) scale(.96)}}
+    .auth-split{position:relative;z-index:1;width:100%;min-height:100vh;display:flex}
+    .auth-left{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:60px 56px;gap:24px}
+    @media(max-width:768px){.auth-left{display:none}}
+    .brand-logo{display:flex;align-items:center;gap:12px}
+    .brand-icon{width:52px;height:52px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:#e5e7eb;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+    .brand-name{font-size:1.8rem;font-weight:800;color:#f9fafb;letter-spacing:-.03em}
+    .brand-name span{color:#9ca3af}
+    .brand-tagline{font-size:1.05rem;color:rgba(255,255,255,.6);font-weight:300;line-height:1.65;max-width:380px}
+    .brand-features{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+    .bf-item{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.6);font-size:.88rem}
+    .bf-dot{width:7px;height:7px;border-radius:50%;background:#6b7280;flex-shrink:0}
+    .auth-right{width:460px;min-width:460px;background:var(--bg);min-height:100vh;display:flex;flex-direction:column;padding:32px;box-shadow:-20px 0 60px rgba(0,0,0,.3)}
+    @media(max-width:768px){.auth-right{width:100%;min-width:0;box-shadow:none}}
+    .auth-header{padding:0 0 24px;display:flex;align-items:center}
+    .auth-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+    .auth-logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff}
+    .auth-logo-text{font-size:1.05rem;font-weight:700;color:var(--text-light)}
+    .auth-logo-text span{color:var(--accent)}
+    .auth-main{flex:1;display:flex;align-items:center;justify-content:center;padding:0}
+    .auth-card{width:100%;max-width:390px}
+    .auth-card-header{text-align:center;margin-bottom:28px}
+    .auth-card-header h1{font-size:1.5rem;font-weight:700;color:var(--text-light);letter-spacing:-.03em}
+    .auth-card-header p{font-size:.85rem;color:var(--text-muted);margin-top:5px}
+    .auth-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+    .auth-alert{padding:11px 14px;border-radius:var(--radius-sm);font-size:.82rem;margin-bottom:18px;display:flex;align-items:center;gap:9px}
+    .auth-alert-error{background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.25);color:#f85149}
+    .auth-alert-success{background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.25);color:var(--green)}
+    .auth-alert svg{flex-shrink:0}
+    .form-group{margin-bottom:16px}
+    .form-label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:6px}
+    .form-input-wrap{position:relative}
+    .form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-light);padding:10px 14px;font-size:.88rem;font-family:var(--font);transition:border-color .2s,box-shadow .2s;outline:none}
+    .form-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-glow)}
+    .form-input::placeholder{color:var(--text-muted);opacity:.7}
+    .form-input.has-icon{padding-right:42px}
+    .pw-toggle{position:absolute;right:0;top:0;height:100%;width:40px;background:none;border:none;color:var(--text-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:color .15s}
+    .pw-toggle:hover{color:var(--text)}
+    .btn-submit{width:100%;padding:11px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:.9rem;font-weight:600;font-family:var(--font);cursor:pointer;transition:all .2s;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-submit:hover{background:#3d5ce5;transform:translateY(-1px)}
+    .btn-submit:active{transform:translateY(0)}
+    .btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .btn-submit .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+    .btn-submit.loading .btn-text{display:none}
+    .btn-submit.loading .spinner{display:block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .auth-divider{text-align:center;font-size:.78rem;color:var(--text-muted);margin:18px 0;position:relative}
+    .auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
+    .auth-divider span{background:var(--surface);padding:0 10px;position:relative}
+    .auth-footer-link{text-align:center;font-size:.82rem;color:var(--text-muted);margin-top:18px}
+    .auth-footer-link a{color:var(--accent);font-weight:500}
+    .auth-footer-link a:hover{text-decoration:underline}
+    .page-footer{padding:18px;text-align:center;font-size:.75rem;color:var(--text-muted);border-top:1px solid var(--border)}
+    .field-error{font-size:.74rem;color:var(--red);margin-top:5px;display:flex;align-items:center;gap:4px}
+    .field-error:empty{display:none}
+  </style>
+</head>
+<body>
+  <div class="auth-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+  <div class="auth-split">
+    <div class="auth-left">
+      <div class="brand-logo">
+        <div class="brand-icon">QD</div>
+        <div class="brand-name">Quick<span>Dealr</span></div>
+      </div>
+      <p class="brand-tagline">India's smartest marketplace for buying, selling and winning auctions — all in one place.</p>
+      <div class="brand-features">
+        <div class="bf-item"><span class="bf-dot"></span>Live auctions with real-time bidding</div>
+        <div class="bf-item"><span class="bf-dot"></span>Instant wallet payments in Indian Rupees</div>
+        <div class="bf-item"><span class="bf-dot"></span>Verified sellers and secure checkout</div>
+        <div class="bf-item"><span class="bf-dot"></span>AI-powered assistant available 24/7</div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <header class="auth-header">
+        <a href="#" class="auth-logo">
+          <div class="auth-logo-icon">QD</div>
+          <div class="auth-logo-text">Quick<span>Dealr</span></div>
+        </a>
+      </header>
+      <main class="auth-main">
+        <div class="auth-card">
+          <div class="auth-card-header">
+            <h1>Welcome back</h1>
+            <p>Sign in to your QuickDealr account</p>
+          </div>
+          <div class="auth-box">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% for cat, msg in messages %}
+                <div class="auth-alert auth-alert-{{ cat }}">
+                  {% if cat == 'error' %}
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {% else %}
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  {% endif %}
+                  {{ msg }}
+                </div>
+              {% endfor %}
+            {% endwith %}
+            <form method="POST" id="loginForm" novalidate>
+              {% if csrf_token is defined %}
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              {% endif %}
+              <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input type="text" id="username" name="username" class="form-input" placeholder="Enter your username" autocomplete="username" autofocus required>
+                <div class="field-error" id="username-err"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="loginPw">Password</label>
+                <div class="form-input-wrap">
+                  <input type="password" id="loginPw" name="password" class="form-input has-icon" placeholder="Enter your password" autocomplete="current-password" required>
+                  <button type="button" class="pw-toggle" id="pwToggleBtn" onclick="togglePw()" title="Show/Hide Password" aria-label="Toggle password visibility">
+                    <svg id="eyeShow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg id="eyeHide" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <div class="field-error" id="pw-err"></div>
+              </div>
+              <button type="submit" class="btn-submit" id="loginBtn">
+                <span class="btn-text">Sign In</span>
+                <div class="spinner"></div>
+              </button>
+            </form>
+            <div class="auth-divider"><span>or</span></div>
+            <div class="auth-footer-link">
+              Don't have an account? <a href="{{ url_for('auth.register') }}">Create account</a>
+            </div>
+          </div>
+        </div>
+      </main>
+      <footer class="page-footer">&copy; 2025 QuickDealr. All rights reserved.</footer>
+    </div>
+  </div>
+  <script>
+    let pwVisible = false;
+    function togglePw() {
+      pwVisible = !pwVisible;
+      const inp = document.getElementById('loginPw');
+      inp.type = pwVisible ? 'text' : 'password';
+      document.getElementById('eyeShow').style.display = pwVisible ? 'none' : 'block';
+      document.getElementById('eyeHide').style.display = pwVisible ? 'block' : 'none';
+    }
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      let valid = true;
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('loginPw').value;
+      const uErr = document.getElementById('username-err');
+      const pErr = document.getElementById('pw-err');
+      uErr.textContent = ''; pErr.textContent = '';
+      if (!username) { uErr.textContent = 'Username is required.'; valid = false; }
+      if (!password) { pErr.textContent = 'Password is required.'; valid = false; }
+      if (!valid) { e.preventDefault(); return; }
+      const btn = document.getElementById('loginBtn');
+      btn.classList.add('loading'); // Do not disable - it cancels form submission
+    });
+  </script>
+</body>
+</html>

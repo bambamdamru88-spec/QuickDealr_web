@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}Checkout — QuickDealr{% endblock %}
+{% block content %}
+<div class="checkout-page container">
+  <div class="checkout-header">
+    <a href="{{ url_for('buyer.cart') }}" class="back-link">&#8592; Back</a>
+    <h1>Checkout</h1>
+  </div>
+
+  <form method="POST" id="checkoutForm"
+        action="{{ url_for('buyer.checkout', mode=mode, pid=pid, qty=qty) }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="mode" value="{{ mode }}">
+    <input type="hidden" name="promo_code" id="appliedPromo" value="{{ promo_code }}">
+    <input type="hidden" name="promo_discount_val" id="promoDiscountVal" value="{{ promo_discount }}">
+
+    <div class="checkout-layout">
+      <div class="checkout-left">
+
+        <!-- ORDER SUMMARY -->
+        <div class="checkout-card">
+          <h3>Order Summary</h3>
+          {% for item in items %}
+          <div class="checkout-item">
+            <img src="{{ item['image'] or 'https://placehold.co/70x70/e2e8f0/64748b?text=?' }}"
+                 alt="{{ item['name'] }}" class="checkout-item-img">
+            <div class="checkout-item-info">
+              <div class="checkout-item-name">{{ item['name'] }}</div>
+              <div class="checkout-item-qty">Qty: {{ item['quantity'] }}</div>
+            </div>
+            <div class="checkout-item-price">&#8377;{{ "{:,.2f}".format(item['price'] * item['quantity']) }}</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- ADDRESS -->
+        <div class="checkout-card">
+          <h3>Delivery Address</h3>
+          {% if addresses %}
+          <div class="address-list" id="addrList">
+            {% for addr in addresses %}
+            <label class="address-radio-card {% if loop.first %}selected{% endif %}">
+              <input type="radio" name="address_id" value="{{ addr['id'] }}"
+                     {% if loop.first %}checked{% endif %}
+                     onchange="this.closest('#addrList').querySelectorAll('.address-radio-card').forEach(c=>c.classList.remove('selected')); this.closest('.address-radio-card').classList.add('selected')">
+              <div class="address-radio-body">
+                <div class="addr-name-row">
+                  <strong>{{ addr['full_name'] }}</strong>
+                  <span class="addr-phone">{{ addr['phone'] }}</span>
+                  {% if addr['is_default'] %}<span class="addr-default-badge">Default</span>{% endif %}
+                </div>
+                <div class="addr-text">{{ addr['full_address'] }}{% if addr['landmark'] %}, Near {{ addr['landmark'] }}{% endif %}</div>
+                <div class="addr-location">{{ addr['city'] }}, {{ addr['state'] }} — {{ addr['pincode'] }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="no-address-msg">No saved addresses. Add one below.</div>
+          {% endif %}
+          <div class="add-addr-toggle">
+            <button type="button" class="btn-add-addr" onclick="toggleNewAddr()">+ Add New Address</button>
+          </div>
+          <div class="new-addr-form" id="newAddrForm" style="display:none">
+            <div class="addr-grid">
+              <div class="fg"><label>Full Name *</label><input type="text" id="nfn" placeholder="John Doe"></div>
+              <div class="fg"><label>Phone *</label><input type="tel" id="nph" placeholder="10-digit mobile" maxlength="10"></div>
+              <div class="fg" style="grid-column:span 2"><label>Full Address *</label><textarea id="nfa" rows="2" placeholder="House/Flat No, Street, Area"></textarea></div>
+              <div class="fg" style="grid-column:span 2"><label>Landmark</label><input type="text" id="nlm" placeholder="Near bus stand"></div>
+              <div class="fg"><label>City *</label><input type="text" id="nci" placeholder="Mumbai"></div>
+              <div class="fg"><label>State *</label><input type="text" id="nst" placeholder="Maharashtra"></div>
+              <div class="fg"><label>Pincode *</label><input type="text" id="npin" placeholder="400001" maxlength="6"></div>
+            </div>
+            <button type="button" class="btn-save-addr" onclick="saveAddress()">Save & Use Address</button>
+          </div>
+        </div>
+
+        <!-- PROMO CODE -->
+        <div class="checkout-card">
+          <h3>Promo Code</h3>
+          <div style="margin-bottom:.65rem">
+            <label style="display:block;font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:.45rem">Enter coupon code</label>
+            <div class="promo-row">
+              <input type="text" id="promoInput" placeholder="e.g. SAVE10"
+                     value="{{ promo_code }}" style="text-transform:uppercase;letter-spacing:.06em">
+              <button type="button" class="btn-apply-promo" onclick="applyPromo()">Apply</button>
+            </div>
+          </div>
+          {% if promo_message %}
+          <div class="promo-msg {% if promo_discount > 0 %}promo-ok{% else %}promo-err{% endif %}">
+            {{ promo_message }}
+          </div>
+          {% endif %}
+          <div id="promoStatus" class="promo-msg" style="display:none"></div>
+        </div>
+
+        <!-- PAYMENT -->
+        <div class="checkout-card">
+          <h3>Payment Method</h3>
+          <div class="payment-tabs">
+            <label class="pay-tab active" id="tab-cod" onclick="selectPay('cod')">
+              <input type="radio" name="payment_method" value="cod" checked>
+              <span class="pay-tab-icon">&#128666;</span><span>Cash on Delivery</span>
+            </label>
+            <label class="pay-tab" id="tab-card" onclick="selectPay('card')">
+              <input type="radio" name="payment_method" value="card">
+              <span class="pay-tab-icon"></span><span>Card</span>
+            </label>
+            <label class="pay-tab" id="tab-upi" onclick="selectPay('upi')">
+              <input type="radio" name="payment_method" value="upi">
+              <span class="pay-tab-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </span><span>UPI</span>
+            </label>
+            <label class="pay-tab" id="tab-wallet" onclick="selectPay('wallet')">
+              <input type="radio" name="payment_method" value="wallet">
+              <span class="pay-tab-icon">&#128176;</span>
+              <span>Wallet (&#8377;{{ "{:,.0f}".format(wallet_bal) }})</span>
+            </label>
+          </div>
+
+          <!-- COD -->
+          <div class="pay-panel" id="panel-cod">
+            <div class="cod-info">
+              <div class="cod-icon">&#128666;</div>
+              <div><strong>Cash on Delivery</strong><p>Pay when your order arrives.</p></div>
+            </div>
+          </div>
+
+          <!-- CARD -->
+          <div class="pay-panel hidden" id="panel-card">
+            <div class="card-visual">
+              <div class="card-chip">&#9646;&#9646;&#9646;</div>
+              <div class="card-number-display" id="cardNumDisplay">.... .... .... ....</div>
+              <div class="card-bottom-row">
+                <div><div class="card-label">CARDHOLDER</div><div id="cardNameDisplay">YOUR NAME</div></div>
+                <div><div class="card-label">EXPIRES</div><div id="cardExpDisplay">MM/YY</div></div>
+              </div>
+            </div>
+            <div class="card-form">
+              <div class="fg">
+                <label>Card Number *</label>
+                <input type="text" name="card_number" id="cardNum"
+                       placeholder="0000 0000 0000 0000" maxlength="19"
+                       oninput="formatCard(this)" autocomplete="cc-number">
+              </div>
+              <div class="fg">
+                <label>Cardholder Name *</label>
+                <input type="text" name="card_name" id="cardName" placeholder="Name as on card"
+                       oninput="document.getElementById('cardNameDisplay').textContent=this.value.toUpperCase()||'YOUR NAME'"
+                       autocomplete="cc-name">
+              </div>
+              <div class="card-row-2">
+                <div class="fg">
+                  <label>Expiry (MM/YY) *</label>
+                  <input type="text" name="expiry" id="cardExp" placeholder="MM/YY" maxlength="5"
+                         oninput="formatExpiry(this)" autocomplete="cc-exp">
+                </div>
+                <div class="fg">
+                  <label>CVV *</label>
+                  <div class="pw-wrap">
+                    <input type="password" name="cvv" id="cvvField" placeholder="..." maxlength="4" autocomplete="cc-csc">
+                    <button type="button" class="pw-toggle" onclick="togglePw('cvvField',this)">
+                      <svg class="eye-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI -->
+          <div class="pay-panel hidden" id="panel-upi">
+            <div class="upi-pay-section upi-auto-confirm">
+              <div class="upi-confirm-icon">
+                <svg width="36" height="36" fill="none" stroke="#4f6ef7" stroke-width="1.8" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><polyline points="6 15 9 18 14 13"/></svg>
+              </div>
+              <div class="upi-instructions">
+                <h4>Pay via UPI</h4>
+                <p class="upi-auto-note">Click <strong>Place Order</strong> to complete payment instantly. Your order will be confirmed immediately.</p>
+                <div class="upi-amount-display">
+                  Amount: <strong>&#8377;{{ "{:,.2f}".format(total) }}</strong>
+                </div>
+                <div class="upi-paid-notice upi-paid-notice--success">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                  Payment will be confirmed automatically upon submission.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WALLET -->
+          <div class="pay-panel hidden" id="panel-wallet">
+            <div class="cod-info" style="background:#f0fdf4;border:1.5px solid #bbf7d0">
+              <div class="cod-icon">&#128176;</div>
+              <div>
+                <strong>Pay with Wallet</strong>
+                <p>Balance: <strong>&#8377;{{ "{:,.2f}".format(wallet_bal) }}</strong></p>
+                {% if wallet_bal < total %}
+                <p style="color:#ef4444;font-weight:600">Insufficient. Need &#8377;{{ "{:,.2f}".format(total - wallet_bal) }} more.</p>
+                <a href="{{ url_for('wallet.topup') }}" class="btn-topup-inline">+ Top Up Wallet</a>
+                {% else %}
+                <p style="color:#16a34a;font-weight:600">Sufficient balance available.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- checkout-left -->
+
+      <!-- PRICE SUMMARY -->
+      <div class="checkout-right">
+        <div class="price-summary-card">
+          <h3>Price Details</h3>
+          <div class="price-row"><span>Subtotal</span><span>&#8377;{{ "{:,.2f}".format(subtotal) }}</span></div>
+          <div class="price-row">
+            <span>Delivery</span>
+            <span>{% if delivery_fee == 0 %}<span class="free-tag">FREE</span>{% else %}&#8377;{{ "{:,.2f}".format(delivery_fee) }}{% endif %}</span>
+          </div>
+          <div class="price-row promo-discount-row" id="promoRow"
+               style="{{ 'display:flex' if promo_discount > 0 else 'display:none' }}">
+            <span>Promo Discount</span>
+            <span style="color:#16a34a;font-weight:700">-&#8377;<span id="promoDiscDisplay">{{ "{:,.2f}".format(promo_discount) }}</span></span>
+          </div>
+          {% if subtotal >= 500 %}
+          <div class="free-delivery-note">Free delivery on orders above &#8377;500!</div>
+          {% endif %}
+          <div class="price-total-row">
+            <span>Total</span>
+            <span id="grandTotal">&#8377;{{ "{:,.2f}".format(total) }}</span>
+          </div>
+          <div class="delivery-estimate">Estimated Delivery: 3-5 business days</div>
+          <!-- FIXED: plain submit button, JS only shows spinner AFTER form starts submitting -->
+          <button type="submit" class="btn-place-order" id="placeOrderBtn">
+            <span id="btnText">Place Order &#8594;</span>
+            <span id="btnSpinner" style="display:none">Processing...</span>
+          </button>
+        </div>
+        <div class="secure-badges">
+          <span> Secure</span>
+          <span>&#10003; CSRF Protected</span>
+          <span>&#10003; Encrypted</span>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+var subtotal  = {{ subtotal|float }};
+var delivery  = {{ delivery_fee|float }};
+var promoDisc = {{ promo_discount|float }};
+var csrfToken = '{{ csrf_token() }}';
+
+/*  Promo code  */
+function applyPromo() {
+  var code = document.getElementById('promoInput').value.trim().toUpperCase();
+  var st   = document.getElementById('promoStatus');
+  if (!code) { st.textContent = 'Enter a promo code.'; st.className = 'promo-msg promo-err'; st.style.display='block'; return; }
+
+  fetch('{{ url_for("buyer.apply_promo_ajax") }}', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: '_csrf=' + encodeURIComponent(csrfToken) + '&code=' + encodeURIComponent(code) + '&subtotal=' + subtotal
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.status === 'success') {
+      promoDisc = data.data.discount;
+      document.getElementById('appliedPromo').value     = code;
+      document.getElementById('promoDiscountVal').value = promoDisc;
+      document.getElementById('promoDiscDisplay').textContent = promoDisc.toFixed(2);
+      document.getElementById('promoRow').style.display = 'flex';
+      st.textContent  = data.data.message;
+      st.className    = 'promo-msg promo-ok';
+      st.style.display = 'block';
+      updateTotal();
+    } else {
+      promoDisc = 0;
+      document.getElementById('appliedPromo').value     = '';
+      document.getElementById('promoDiscountVal').value = '0';
+      document.getElementById('promoRow').style.display = 'none';
+      st.textContent  = data.message;
+      st.className    = 'promo-msg promo-err';
+      st.style.display = 'block';
+      updateTotal();
+    }
+  })
+  .catch(function(){ st.textContent='Could not apply code.'; st.className='promo-msg promo-err'; st.style.display='block'; });
+}
+
+function updateTotal() {
+  var t = Math.max(0, subtotal + delivery - promoDisc);
+  document.getElementById('grandTotal').textContent = '&#8377;' + t.toFixed(2);
+  var qa = document.getElementById('qrAmount');
+  if (qa) qa.textContent = '&#8377;' + t.toFixed(2);
+}
+
+/*  Payment tabs  */
+function selectPay(method) {
+  ['cod','card','upi','wallet'].forEach(function(m) {
+    var panel = document.getElementById('panel-' + m);
+    var tab   = document.getElementById('tab-' + m);
+    if (panel) panel.classList.toggle('hidden', m !== method);
+    if (tab)   tab.classList.toggle('active',   m === method);
+  });
+}
+
+/*  Card formatting  */
+function formatCard(inp) {
+  var v = inp.value.replace(/\D/g,'').substring(0,16);
+  inp.value = v.match(/.{1,4}/g) ? v.match(/.{1,4}/g).join(' ') : v;
+  var d = v.padEnd(16,'.');
+  document.getElementById('cardNumDisplay').textContent =
+    d.slice(0,4)+' '+d.slice(4,8)+' '+d.slice(8,12)+' '+d.slice(12,16);
+}
+function formatExpiry(inp) {
+  var v = inp.value.replace(/\D/g,'');
+  if (v.length >= 3) v = v.substring(0,2)+'/'+v.substring(2,4);
+  inp.value = v;
+  document.getElementById('cardExpDisplay').textContent = inp.value || 'MM/YY';
+}
+function togglePw(id, btn) {
+  var inp = document.getElementById(id);
+  inp.type = inp.type==='text'?'password':'text';
+  btn.querySelector('.eye-icon').style.opacity = inp.type==='text'?'0.4':'1';
+}
+
+/*  Address toggle  */
+function toggleNewAddr() {
+  var f = document.getElementById('newAddrForm');
+  f.style.display = f.style.display==='none' ? 'block' : 'none';
+}
+
+function saveAddress() {
+  var data = {
+    full_name:    document.getElementById('nfn').value.trim(),
+    phone:        document.getElementById('nph').value.trim(),
+    full_address: document.getElementById('nfa').value.trim(),
+    landmark:     document.getElementById('nlm').value.trim(),
+    city:         document.getElementById('nci').value.trim(),
+    state:        document.getElementById('nst').value.trim(),
+    pincode:      document.getElementById('npin').value.trim(),
+    _csrf:        csrfToken
+  };
+  var missing = ['full_name','phone','full_address','city','state','pincode'].filter(function(k){ return !data[k]; });
+  if (missing.length) { alert('Please fill all required fields.'); return; }
+  fetch('/addresses/add', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body: Object.keys(data).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(data[k]); }).join('&')
+  }).then(function(r){ if(r.ok||r.redirected) location.reload(); });
+}
+
+/*  FIXED Submit: just show spinner, do NOT block submission  */
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+  var method  = (document.querySelector('input[name="payment_method"]:checked') || {}).value;
+  var addrSel = document.querySelector('input[name="address_id"]:checked');
+
+  if (!addrSel) {
+    e.preventDefault();
+    alert('Please select a delivery address.');
+    return;
+  }
+  if (method === 'card') {
+    var num = (document.getElementById('cardNum').value||'').replace(/\s/g,'');
+    if (num.length !== 16) { e.preventDefault(); alert('Enter a valid 16-digit card number.'); return; }
+    var exp = document.getElementById('cardExp').value||'';
+    if (!/^\d{2}\/\d{2}$/.test(exp)) { e.preventDefault(); alert('Enter valid expiry MM/YY.'); return; }
+    var cvv = document.getElementById('cvvField').value||'';
+    if (!/^\d{3,4}$/.test(cvv)) { e.preventDefault(); alert('Enter valid CVV.'); return; }
+  }
+  if (false) {  // UPI: no txn ID required
+  }
+  /* Validation passed — show spinner and let the form submit normally */
+  document.getElementById('btnText').style.display = 'none';
+  document.getElementById('btnSpinner').style.display = 'inline';
+  document.getElementById('placeOrderBtn').disabled = true;
+});
+</script>
+{% endblock %}

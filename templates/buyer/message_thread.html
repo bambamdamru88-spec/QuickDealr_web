@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Chat with {{ other['username'] }} — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem">
+  <div class="thread-header">
+    <a href="{{ url_for('buyer.messages') }}" class="back-link">← Messages</a>
+    <div>
+      <h2> {{ other['username'] }}</h2>
+      <p>Re: {{ auction['name'] }} (Auction)</p>
+    </div>
+  </div>
+  <div class="message-thread-wrap">
+    <div class="messages-container" id="msgContainer">
+      {% for m in msgs %}
+      <div class="msg-bubble {% if m['sender_id'] == session['user_id'] %}sent{% else %}received{% endif %}">
+        <div class="msg-text">{{ m['message'] }}</div>
+        <div class="msg-time">{{ m['created_at'][11:16] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <form method="POST" class="msg-input-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="text" name="message" placeholder="Type a message…" required autofocus autocomplete="off">
+      <button type="submit" class="btn-send">Send </button>
+    </form>
+  </div>
+</div>
+<script>document.getElementById('msgContainer').scrollTop = 999999;</script>
+{% endblock %}

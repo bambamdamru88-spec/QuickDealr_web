@@ -1,0 +1,121 @@
+{% extends "base_admin.html" %}
+{% block title %}Settings — QuickDealr Admin{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Settings</h1>
+  <p>UPI configuration, password and system preferences</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+  <!-- UPI Settings -->
+  <div class="admin-section">
+    <div class="section-head">
+      <div><h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        UPI Payment Settings
+      </h2>
+      <p>UPI ID shown to buyers at checkout</p></div>
+    </div>
+    <div style="padding:20px">
+      <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="upi">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:6px">UPI ID</label>
+            <input type="text" name="upi_id"
+                   value="{{ qr.upi_id if qr else '' }}"
+                   placeholder="e.g. quickdealr@upi"
+                   style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:.875rem">
+            <p style="font-size:.72rem;color:var(--text-muted);margin-top:5px">Buyers will send payment to this UPI ID</p>
+          </div>
+          <button type="submit" class="admin-btn admin-btn-set" style="align-self:flex-start">Save UPI ID</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="admin-section">
+    <div class="section-head">
+      <div><h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Change Password
+      </h2>
+      <p>Update your admin account password</p></div>
+    </div>
+    <div style="padding:20px">
+      <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="password">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <label style="display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:6px">Current Password</label>
+            <input type="password" name="old_password" required placeholder="Enter current password"
+                   style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:.875rem">
+          </div>
+          <div>
+            <label style="display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:6px">New Password</label>
+            <input type="password" name="new_password" required placeholder="Min 6 characters"
+                   style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:.875rem">
+          </div>
+          <div>
+            <label style="display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:6px">Confirm New Password</label>
+            <input type="password" name="confirm_password" required placeholder="Repeat new password"
+                   style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:.875rem">
+          </div>
+          <button type="submit" class="admin-btn admin-btn-set" style="align-self:flex-start">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Profile -->
+  <div class="admin-section">
+    <div class="section-head">
+      <div><h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Admin Profile
+      </h2></div>
+    </div>
+    <div style="padding:20px">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border)">
+        <div style="width:48px;height:48px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff">
+          {{ session.username[0].upper() if session.username else 'A' }}
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:.95rem">{{ session.username }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Settings -->
+  <div class="admin-section">
+    <div class="section-head">
+      <div><h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        System
+      </h2></div>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:.85rem">Platform Version</span>
+        <span style="font-size:.8rem;font-weight:600;color:var(--accent)">QuickDealr v8</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:.85rem">Payment Method</span>
+        <span style="font-size:.8rem;font-weight:600;color:#22c55e">UPI Enabled</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+        <span style="font-size:.85rem">Wallet System</span>
+        <span style="font-size:.8rem;font-weight:600;color:#22c55e">Active</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

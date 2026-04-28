@@ -1,0 +1,68 @@
+{% extends "base_admin.html" %}
+{% block title %}Users — QuickDealr Admin{% endblock %}
+{% block page_title %}Users{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>All Users</h1>
+  <p>Manage registered buyers, sellers and admins</p>
+</div>
+
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users <span class="section-badge">{{ users|length }}</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Wallet</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td class="text-muted" style="font-size:.72rem">{{ u.id }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0">{{ u.username[0].upper() }}</div>
+              <span style="font-weight:600">{{ u.username }}</span>
+              {% if u.id == session.user_id %}<span style="font-size:.68rem;color:var(--text-muted)">(you)</span>{% endif %}
+            </div>
+          </td>
+          <td style="color:var(--text-muted);font-size:.8rem">{{ u.email }}</td>
+          <td>
+            <span class="badge {% if u.role=='admin' %}badge-purple{% elif u.role=='seller' %}badge-amber{% else %}badge-green{% endif %}">{{ u.role }}</span>
+          </td>
+          <td style="font-weight:600">&#8377;{{ "{:,.2f}".format(u.wallet or 0) }}</td>
+          <td>
+            {% if u['is_active'] %}
+              <span class="badge badge-green">Active</span>
+            {% else %}
+              <span class="badge badge-red">Inactive</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.75rem;color:var(--text-muted)">{{ u.created_at[:10] if u.created_at else '—' }}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              {% if u.id != session.user_id %}
+              <form method="POST" action="{{ url_for('admin.toggle_user', uid=u.id) }}" style="display:inline">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button class="admin-btn admin-btn-sm {% if u['is_active'] %}admin-btn-deactivate{% else %}admin-btn-approve{% endif %}">
+                  {{ 'Deactivate' if u['is_active'] else 'Activate' }}
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty-row">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Payment Guide — QuickDealr{% endblock %}
+{% block content %}
+<div class="info-page">
+  <div class="container">
+    <div class="info-page-header">
+      <div class="info-breadcrumb"><a href="/">Home</a> / Payment Guide</div>
+      <h1>Payment Guide</h1>
+      <p>Learn about the payment methods available on QuickDealr and how each one works.</p>
+    </div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-card-icon ic-blue">W</div>
+        <h3>Wallet Payment</h3>
+        <p><strong>Recommended.</strong> Top up your QuickDealr wallet and use it for instant, fee-free payments across the platform. Wallet balance is credited within 24 hours of a verified top-up request.</p>
+        <ul class="info-list">
+          <li>Instant checkout — no card details needed</li>
+          <li>Secure and admin-verified</li>
+          <li>Works for both regular orders and auction wins</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon ic-green">C</div>
+        <h3>Cash on Delivery (COD)</h3>
+        <p>Pay in cash when your order arrives at your doorstep. Available for most standard product orders. Not available for auction wins.</p>
+        <ul class="info-list">
+          <li>No advance payment required</li>
+          <li>Pay only when you receive the item</li>
+          <li>Available on eligible orders</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon ic-purple">K</div>
+        <h3>Card Payment</h3>
+        <p>Pay securely using your debit or credit card at checkout. Card details are validated server-side and protected by CSRF security. We do not store raw card numbers.</p>
+        <ul class="info-list">
+          <li>Visa, Mastercard, and RuPay accepted</li>
+          <li>Secure, encrypted checkout form</li>
+          <li>Instant confirmation</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <div class="info-card-icon ic-amber">U</div>
+        <h3>UPI / QR Code</h3>
+        <p>Scan a QR code or use any UPI app to complete payment. Fast and familiar for Indian users. Payment is verified before the order is confirmed.</p>
+        <ul class="info-list">
+          <li>Works with any UPI app (GPay, PhonePe, Paytm)</li>
+          <li>Instant digital payment</li>
+          <li>No hidden fees</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

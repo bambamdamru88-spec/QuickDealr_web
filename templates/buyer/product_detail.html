@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}{{ p['name'] }} — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding:2rem 1rem 4rem">
+  <nav class="breadcrumb">
+    <a href="{{ url_for('buyer.home') }}">Home</a> /
+    <a href="{{ url_for('buyer.home', category=p['category']) }}">{{ p['category'] }}</a> /
+    <span>{{ p['name'] }}</span>
+  </nav>
+  <div class="detail-layout">
+    <div class="detail-img-col">
+      <div class="detail-img-wrap">
+        <img src="{{ p['image'] or 'https://via.placeholder.com/600x460?text=No+Image' }}" alt="{{ p['name'] }}">
+      </div>
+    </div>
+    <div class="detail-info-col">
+      <span class="detail-cat">{{ p['category'] }}</span>
+      <h1 class="detail-title">{{ p['name'] }}</h1>
+      <div class="detail-rating"> <span>({{ p['views'] }} views)</span></div>
+      <div class="detail-price">&#8377;{{ "{:,.2f}".format(p['price']) }}</div>
+      <p class="detail-desc">{{ p['description'] or 'Quality product from a verified seller.' }}</p>
+      <div class="detail-meta-grid">
+        <div><span>Seller</span><strong>{{ p['seller_name'] }}</strong></div>
+        <div><span>Category</span><strong>{{ p['category'] }}</strong></div>
+        <div><span>Stock</span><strong style="color:#22c55e"> {{ p['stock'] }} left</strong></div>
+        <div><span>Views</span><strong>{{ p['views'] }}</strong></div>
+      </div>
+      <div class="detail-action-row">
+        <form method="POST" action="{{ url_for('buyer.add_cart', pid=p['id']) }}" style="flex:1">
+          <button type="submit" class="btn-cart-lg"> Add to Cart</button>
+        </form>
+        <form method="POST" action="{{ url_for('buyer.buy_now', pid=p['id']) }}" style="flex:1">
+          <button type="submit" class="btn-buy-lg"> Buy Now</button>
+        </form>
+        <button class="btn-wish {% if in_wishlist %}liked{% endif %}" id="wishBtn"
+                onclick="toggleWish({{ p['id'] }}, document.getElementById('wishBtn'))"></button>
+      </div>
+      <div class="detail-perks">
+        <span> Free delivery</span>
+        <span> Secure checkout</span>
+        <span>↩ 30-day returns</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

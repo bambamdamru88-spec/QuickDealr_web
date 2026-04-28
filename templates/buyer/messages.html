@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Messages — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem">
+  <div class="page-header"><h1> Messages</h1><p>Your auction conversations</p></div>
+  {% if conversations %}
+  <div class="conversations-list">
+    {% for c in conversations %}
+    <a href="{{ url_for('buyer.message_thread', auction_id=c['auction_id'], other_id=c['other_id']) }}" class="conversation-card">
+      <div class="conv-avatar">{{ c['other_name'][0].upper() }}</div>
+      <div class="conv-info">
+        <div class="conv-name">{{ c['other_name'] }}</div>
+        <div class="conv-product">Re: {{ c['product_name'] }}</div>
+      </div>
+      <div class="conv-time">{{ c['created_at'][:10] }}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><span></span><h3>No messages</h3><p>Win an auction to contact the seller.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

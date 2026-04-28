@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Register — QuickDealr{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-split">
+    <div class="auth-visual">
+      <div class="auth-visual-inner">
+        <div class="auth-logo-lg">Quick<strong>Dealr</strong></div>
+        <h2>Join the<br>Marketplace.</h2>
+        <p>Create your account and start shopping or selling in minutes. New accounts get &#8377;1000 wallet bonus!</p>
+        <div class="auth-feat">
+          <span>&#8377;1000 Welcome Bonus</span>
+          <span>Auction Access</span>
+          <span>Fast Delivery</span>
+        </div>
+      </div>
+    </div>
+    <div class="auth-form-col">
+      <div class="auth-form-card">
+        <h3>Create Account</h3>
+        <p class="auth-sub">Join thousands of buyers and sellers</p>
+        <form method="POST" class="auth-form" id="regForm">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="fg">
+            <label>Username <span class="req">*</span></label>
+            <input type="text" name="username" placeholder="Min 3 characters" required minlength="3" autocomplete="username">
+          </div>
+          <div class="fg">
+            <label>Email Address <span class="req">*</span></label>
+            <input type="email" name="email" placeholder="your@email.com" required autocomplete="email">
+          </div>
+          <div class="fg password-fg">
+            <label>Password <span class="req">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" name="password" id="regPw" placeholder="Min 8 chars, 1 uppercase, 1 number" required minlength="8" autocomplete="new-password" oninput="checkPwStrength(this)">
+              <button type="button" class="pw-toggle" onclick="togglePw('regPw',this)">
+                <svg class="eye-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="pw-strength-bar"><div id="pwStrengthFill"></div></div>
+            <div class="pw-hint" id="pwHint">Enter password to check strength</div>
+          </div>
+          <div class="fg password-fg">
+            <label>Confirm Password <span class="req">*</span></label>
+            <div class="pw-wrap">
+              <input type="password" name="confirm_password" id="regPw2" placeholder="Repeat your password" required autocomplete="new-password">
+              <button type="button" class="pw-toggle" onclick="togglePw('regPw2',this)">
+                <svg class="eye-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="fg">
+            <label>I want to</label>
+            <div class="role-toggle">
+              <label class="role-opt"><input type="radio" name="role" value="buyer" checked><span> Buy Products</span></label>
+              <label class="role-opt"><input type="radio" name="role" value="seller"><span> Sell Products</span></label>
+            </div>
+          </div>
+          <button type="submit" class="btn-auth-submit" id="regSubmitBtn">Create Account</button>
+        </form>
+        <div class="auth-link">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  btn.querySelector('.eye-icon').style.opacity = isText ? '1' : '0.4';
+}
+document.getElementById('regForm').addEventListener('submit', function(e) {
+  var pw  = document.getElementById('regPw').value;
+  var pw2 = document.getElementById('regPw2').value;
+  if (pw !== pw2) {
+    e.preventDefault();
+    alert('Passwords do not match.');
+    return;
+  }
+  var btn = document.getElementById('regSubmitBtn');
+  btn.textContent = 'Creating account...';
+  btn.style.opacity = '0.7';
+});
+function checkPwStrength(inp) {
+  const pw = inp.value;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const fill = document.getElementById('pwStrengthFill');
+  const hint = document.getElementById('pwHint');
+  const colors = ['#ef4444','#f97316','#eab308','#22c55e'];
+  const labels = ['Weak','Fair','Good','Strong'];
+  fill.style.width = (score * 25) + '%';
+  fill.style.background = colors[score-1] || '#e5e7eb';
+  hint.textContent = score ? labels[score-1] : 'Enter password to check strength';
+  hint.style.color = colors[score-1] || '#9ca3af';
+}
+</script>
+{% endblock %}

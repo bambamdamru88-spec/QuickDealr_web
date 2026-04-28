@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}File Upload — QuickDealr{% endblock %}
+{% block extra_css %}
+<style>
+  .upload-page{max-width:800px;margin:0 auto;padding:28px 16px}
+  .upload-page h1{font-size:1.35rem;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+  .upload-page .sub{font-size:.83rem;color:var(--muted);margin-bottom:24px}
+  .upload-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+  .upload-card-head{padding:14px 18px;border-bottom:1px solid var(--border);font-size:.88rem;font-weight:700;color:var(--text)}
+  .upload-body{padding:20px 18px}
+  .drop-zone{border:2px dashed var(--border);border-radius:10px;padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s}
+  .drop-zone:hover,.drop-zone.drag-over{border-color:#4f6ef7;background:rgba(79,110,247,.04)}
+  .drop-zone svg{color:var(--muted);margin-bottom:10px}
+  .drop-zone h3{font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:5px}
+  .drop-zone p{font-size:.78rem;color:var(--muted)}
+  .file-input-hidden{display:none}
+  .btn-choose{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:9px 18px;background:#4f6ef7;color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+  .btn-choose:hover{background:#3d5ce5}
+  .selected-file{background:rgba(79,110,247,.08);border:1px solid rgba(79,110,247,.25);border-radius:8px;padding:10px 14px;margin-top:14px;font-size:.8rem;display:none;align-items:center;gap:10px;color:var(--text)}
+  .selected-file.show{display:flex}
+  .selected-file strong{color:#4f6ef7}
+  .btn-upload{width:100%;padding:11px;background:#4f6ef7;border:none;border-radius:8px;color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;margin-top:14px;font-family:inherit;transition:background .15s}
+  .btn-upload:hover{background:#3d5ce5}
+  .btn-upload:disabled{opacity:.5;cursor:not-allowed}
+  .alert-success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px 14px;font-size:.82rem;color:#22c55e;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:12px 14px;font-size:.82rem;color:#ef4444;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .files-tbl{width:100%;border-collapse:collapse;font-size:.8rem}
+  .files-tbl th{padding:9px 14px;text-align:left;font-size:.63rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;background:var(--surface2);border-bottom:1px solid var(--border)}
+  .files-tbl td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+  .files-tbl tbody tr:last-child td{border-bottom:none}
+  .files-tbl tbody tr:hover td{background:rgba(255,255,255,.02)}
+  .file-link{color:#4f6ef7;text-decoration:none;font-size:.78rem}
+  .file-link:hover{text-decoration:underline}
+  .size-cell{color:var(--muted);font-size:.75rem;font-family:monospace}
+  .security-note{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:10px 14px;font-size:.77rem;color:#f59e0b;margin-top:14px;display:flex;align-items:flex-start;gap:8px}
+  .security-note svg{flex-shrink:0;margin-top:1px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-page">
+  <h1>File Upload</h1>
+  <p class="sub">Upload any file type securely. Files are stored privately and linked to your account.</p>
+
+  <div class="upload-card">
+    <div class="upload-card-head">Upload a File</div>
+    <div class="upload-body">
+
+      {% if error %}
+      <div class="alert-error">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ error }}
+      </div>
+      {% endif %}
+
+      {% if uploaded %}
+      <div class="alert-success">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <span>
+          <strong>{{ uploaded.name }}</strong> uploaded successfully!
+          <a href="{{ uploaded.path }}" target="_blank" class="file-link" style="margin-left:8px">View file</a>
+        </span>
+      </div>
+      {% endif %}
+
+      <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="file" name="file" id="fileInput" class="file-input-hidden" onchange="onFileChosen(this)">
+
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <h3>Drag and drop your file here</h3>
+          <p>or click to browse — any file type accepted</p>
+          <button type="button" class="btn-choose" onclick="event.stopPropagation();document.getElementById('fileInput').click()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Choose File
+          </button>
+        </div>
+
+        <div class="selected-file" id="selectedFile">
+          <svg width="16" height="16" fill="none" stroke="#4f6ef7" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>Selected: <strong id="selFileName">—</strong> (<span id="selFileSize">—</span>)</span>
+        </div>
+
+        <div class="security-note">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Max size: 10 MB. Executable files (.exe, .php, .py, .sh etc.) are blocked for security. All files are stored with unique names to prevent conflicts.</span>
+        </div>
+
+        <button type="submit" class="btn-upload" id="submitBtn" disabled>Upload File</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Recent uploads -->
+  {% if recent %}
+  <div class="upload-card">
+    <div class="upload-card-head">My Uploaded Files</div>
+    <div style="overflow-x:auto">
+      <table class="files-tbl">
+        <thead>
+          <tr><th>File Name</th><th>Size</th><th>Uploaded</th><th>Link</th></tr>
+        </thead>
+        <tbody>
+          {% for f in recent %}
+          <tr>
+            <td>{{ f['original_name'] }}</td>
+            <td class="size-cell">{{ (f['size_bytes'] / 1024)|round(1) }} KB</td>
+            <td class="size-cell">{{ f['created_at'][:16] if f['created_at'] else '—' }}</td>
+            <td><a href="{{ f['file_path'] }}" target="_blank" class="file-link">View / Download</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function onFileChosen(input) {
+  if (input.files && input.files[0]) {
+    const f = input.files[0];
+    document.getElementById('selFileName').textContent = f.name;
+    document.getElementById('selFileSize').textContent = (f.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('selectedFile').classList.add('show');
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  const dt = e.dataTransfer;
+  if (dt.files.length) {
+    document.getElementById('fileInput').files = dt.files;
+    onFileChosen(document.getElementById('fileInput'));
+  }
+});
+</script>
+{% endblock %}

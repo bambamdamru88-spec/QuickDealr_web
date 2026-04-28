@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>{% block title %}QuickDealr{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="role-{{ session.get('role','guest') }}">
+
+{% if session.get('role') %}
+<div class="role-bar role-bar-{{ session.get('role') }}">
+  {% if session.get('role') == 'buyer' %}Buyer
+  {% elif session.get('role') == 'seller' %}Seller
+  {% elif session.get('role') == 'admin' %}Admin
+  {% endif %}
+  &nbsp;·&nbsp; <strong>{{ session.get('username') }}</strong>
+  {% if session.get('role') == 'buyer' %}
+  &nbsp;·&nbsp;  &#8377;{{ "{:,.0f}".format(get_wallet(session.get('user_id'))) }}
+  {% endif %}
+</div>
+{% endif %}
+
+<header class="navbar">
+  <div class="nav-inner">
+    <a href="{% if session.get('role')=='seller' %}{{ url_for('seller.dashboard') }}{% elif session.get('role')=='admin' %}{{ url_for('admin.dashboard') }}{% else %}{{ url_for('buyer.home') if session.get('user_id') else url_for('auth.login') }}{% endif %}" class="logo" style="display:flex;align-items:center;gap:8px;text-decoration:none">
+      <span style="width:30px;height:30px;background:linear-gradient(135deg,#4f6ef7,#6d28d9);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;flex-shrink:0">QD</span>
+      <span style="font-size:1.05rem;font-weight:800;color:var(--text,#fff);letter-spacing:-.02em">Quick<strong style="color:#4f6ef7">Dealr</strong></span>
+    </a>
+
+    {% if session.get('role') == 'buyer' %}
+    <form class="search-form" action="{{ url_for('buyer.home') }}" method="GET">
+      <div class="search-wrap">
+        <input id="searchInput" name="q" type="text" autocomplete="off" placeholder="Search products…" value="{{ request.args.get('q','') }}">
+        <button type="submit" class="search-btn">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+        <div class="search-dropdown" id="searchDrop"></div>
+      </div>
+    </form>
+    <nav class="nav-right">
+      <a href="{{ url_for('buyer.auctions_list') }}" class="nav-live-btn {% if request.endpoint == 'buyer.auctions_list' %}active{% endif %}" title="Live Auctions">
+        <span class="live-dot"></span>Live
+      </a>
+      <a href="{{ url_for('buyer.cart') }}" class="nav-icon-btn" title="Cart">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        {% if cc > 0 %}<span class="nav-badge">{{ cc }}</span>{% endif %}
+      </a>
+      <!-- Profile Dropdown -->
+      <div class="nav-profile-wrap" id="navProfileWrap">
+        <button class="nav-avatar-btn" id="navAvatarBtn" onclick="toggleProfileDropdown(event)" title="My Profile">
+          <span class="nav-avatar-inner">{{ session.get('username','U')[0].upper() }}</span>
+          {% if nc > 0 %}<span class="nav-badge red nav-notif-dot">{{ nc }}</span>{% endif %}
+        </button>
+        <div class="nav-profile-menu" id="navProfileMenu">
+
+          <!-- User card header -->
+          <div class="npm-header">
+            <div class="npm-avatar">{{ session.get('username','U')[0].upper() }}</div>
+            <div style="flex:1;min-width:0">
+              <div class="npm-name">{{ session.get('username') }}</div>
+              <div class="npm-role">Buyer</div>
+            </div>
+            <!-- Wallet balance pill inside profile menu -->
+            <div class="npm-wallet-pill">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              &#8377;{{ "{:,.0f}".format(get_wallet(session.get('user_id'))) }}
+            </div>
+          </div>
+
+          <div class="npm-divider"></div>
+
+          <!-- Section: Account -->
+          <div class="npm-section-label">Account</div>
+          <a href="{{ url_for('buyer.home') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-blue">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <span class="npm-item-text">My Profile</span>
+          </a>
+          <a href="{{ url_for('buyer.addresses') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-purple">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <span class="npm-item-text">Saved Addresses</span>
+          </a>
+
+          <div class="npm-divider"></div>
+
+          <!-- Section: Shopping -->
+          <div class="npm-section-label">Shopping</div>
+          <a href="{{ url_for('buyer.orders') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-orange">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            </div>
+            <span class="npm-item-text">My Orders</span>
+          </a>
+          <a href="{{ url_for('buyer.wishlist') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-red">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </div>
+            <span class="npm-item-text">Wishlist</span>
+          </a>
+          <a href="{{ url_for('buyer.cart') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-teal">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </div>
+            <span class="npm-item-text">My Cart</span>
+            {% if cc > 0 %}<span class="npm-badge" style="margin-left:auto">{{ cc }}</span>{% endif %}
+          </a>
+
+          <div class="npm-divider"></div>
+
+          <!-- Section: Finance -->
+          <div class="npm-section-label">Finance</div>
+          <a href="{{ url_for('wallet.wallet_home') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-green">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <span class="npm-item-text">Wallet</span>
+            <span class="npm-wallet-mini">&#8377;{{ "{:,.0f}".format(get_wallet(session.get('user_id'))) }}</span>
+          </a>
+          <a href="{{ url_for('buyer.notifications') }}" class="npm-item">
+            <div class="npm-item-icon npm-icon-yellow">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <span class="npm-item-text">Notifications</span>
+            {% if nc > 0 %}<span class="npm-badge" style="margin-left:auto">{{ nc }}</span>{% endif %}
+          </a>
+
+          <div class="npm-divider"></div>
+
+          <a href="{{ url_for('auth.logout') }}" class="npm-item npm-logout">
+            <div class="npm-item-icon" style="background:rgba(239,68,68,.1)">
+              <svg width="13" height="13" fill="none" stroke="#ef4444" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+            <span class="npm-item-text">Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    {% elif session.get('role') == 'seller' %}
+    <nav class="nav-right">
+      <a href="{{ url_for('seller.dashboard') }}" class="nav-link {% if request.endpoint == 'seller.dashboard' %}active{% endif %}">Dashboard</a>
+      <a href="{{ url_for('seller.add_product') }}" class="nav-link-add">+ Add Product</a>
+      <a href="{{ url_for('seller.orders') }}" class="nav-link {% if request.endpoint == 'seller.orders' %}active{% endif %}">Orders</a>
+      <a href="{{ url_for('seller.withdraw') }}" class="nav-link {% if request.endpoint == 'seller.withdraw' %}active{% endif %}">Withdraw</a>
+      <span class="nav-divider"></span>
+      <a href="{{ url_for('buyer.notifications') }}" class="nav-icon-btn" title="Notifications">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        {% if nc > 0 %}<span class="nav-badge red">{{ nc }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('wallet.wallet_home') }}" class="nav-wallet-btn">&#8377;{{ "{:,.0f}".format(get_wallet(session.get('user_id'))) }}</a>
+      <div class="nav-user-chip seller-chip">Seller</div>
+      <a href="{{ url_for('auth.logout') }}" class="nav-logout">Logout</a>
+    </nav>
+
+    {% elif session.get('role') == 'admin' %}
+    <nav class="nav-right">
+      <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Overview</a>
+      <a href="{{ url_for('admin.notifications') }}" class="nav-icon-btn">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        {% if nc > 0 %}<span class="nav-badge red">{{ nc }}</span>{% endif %}
+      </a>
+      <div class="nav-user-chip admin-chip">{{ session.get('username') }}</div>
+      <a href="{{ url_for('auth.logout') }}" class="nav-logout">Logout</a>
+    </nav>
+
+    {% else %}
+    <nav class="nav-right">
+      <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="btn-signup">Sign Up</a>
+    </nav>
+    {% endif %}
+  </div>
+</header>
+
+<div id="toastZone" class="toast-zone">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="toast toast-{{ cat }}" data-auto>
+        <span class="toast-icon">{% if cat=='success' %}+{% else %}!{% endif %}</span>
+        <span>{{ msg }}</span>
+        <button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<main id="main">{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-logo" style="display:flex;align-items:center;gap:8px">
+        <span style="width:26px;height:26px;background:linear-gradient(135deg,#4f6ef7,#6d28d9);border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:#fff">QD</span>
+        Quick<strong>Dealr</strong>
+      </div>
+      <p>India's live auction & marketplace platform. Every product listed by a real seller.</p>
+    </div>
+    <div class="footer-col">
+      <h5>Company</h5>
+      <ul>
+        <li><a href="/about">About Us</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/careers">Careers</a></li>
+        <li><a href="/blog">Blog</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Help</h5>
+      <ul>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/how-auctions-work">How Auctions Work</a></li>
+        <li><a href="/payment-guide">Payment Guide</a></li>
+        <li><a href="/seller-guide">Seller Guide</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Policies</h5>
+      <ul>
+        <li><a href="/privacy-policy">Privacy Policy</a></li>
+        <li><a href="/terms-of-service">Terms of Service</a></li>
+        <li><a href="/refund-policy">Refund Policy</a></li>
+        <li><a href="/cookie-policy">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 QuickDealr. All rights reserved.</p>
+    <p>Made in India</p>
+  </div>
+</footer>
+
+<div id="pageLoader" class="page-loader hidden"><div class="loader-ring"></div></div>
+<script src="{{ url_for('static',filename='js/main.js') }}"></script>
+<script>
+// Profile dropdown
+function toggleProfileDropdown(e) {
+  e.stopPropagation();
+  var menu = document.getElementById('navProfileMenu');
+  if (menu) menu.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('navProfileWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    var menu = document.getElementById('navProfileMenu');
+    if (menu) menu.classList.remove('open');
+  }
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var menu = document.getElementById('navProfileMenu');
+    if (menu) menu.classList.remove('open');
+  }
+});
+</script>
+{% block extra_js %}{% endblock %}
+
+<!-- ══ FLOATING AI CHAT BOX ══ -->
+<style>
+  .ai-fab{position:fixed;bottom:24px;right:24px;z-index:9000;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#4f6ef7,#6d28d9);border:none;cursor:pointer;box-shadow:0 4px 20px rgba(79,110,247,.45);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s}
+  .ai-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(79,110,247,.6)}
+  .ai-fab svg{color:#fff}
+  .ai-popup{position:fixed;bottom:86px;right:24px;z-index:8999;width:340px;max-width:calc(100vw - 32px);background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;transform:scale(.85) translateY(20px);opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1)}
+  .ai-popup.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+  .ai-head{padding:14px 16px;background:linear-gradient(135deg,#4f6ef7,#6d28d9);display:flex;align-items:center;gap:10px}
+  .ai-avatar{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ai-head-info .ai-name{font-size:.85rem;font-weight:700;color:#fff}
+  .ai-head-info .ai-status{font-size:.68rem;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:4px}
+  .ai-status-dot{width:6px;height:6px;border-radius:50%;background:#4ade80}
+  .ai-close{margin-left:auto;background:rgba(255,255,255,.15);border:none;color:#fff;cursor:pointer;padding:5px;border-radius:6px;display:flex;align-items:center;transition:background .15s}
+  .ai-close:hover{background:rgba(255,255,255,.25)}
+  .ai-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:240px;max-height:300px;background:#f9fafb}
+  .ai-msg{max-width:82%;padding:9px 12px;border-radius:12px;font-size:.8rem;line-height:1.55;font-family:system-ui,sans-serif}
+  .ai-msg.user{background:#4f6ef7;color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+  .ai-msg.bot{background:#fff;color:#1f2937;align-self:flex-start;border-bottom-left-radius:3px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .ai-msg.typing{background:#fff;border:1px solid #e5e7eb;align-self:flex-start}
+  .ai-typing-dots{display:flex;gap:4px;padding:4px 2px}
+  .ai-typing-dots span{width:6px;height:6px;border-radius:50%;background:#9ca3af;animation:typingDot .9s infinite}
+  .ai-typing-dots span:nth-child(2){animation-delay:.15s}
+  .ai-typing-dots span:nth-child(3){animation-delay:.3s}
+  @keyframes typingDot{0%,80%,100%{transform:scale(1);opacity:.5}40%{transform:scale(1.3);opacity:1}}
+  .ai-input-row{padding:10px 12px;border-top:1px solid #e5e7eb;display:flex;gap:8px;align-items:center;background:#fff}
+  .ai-input{flex:1;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:20px;color:#111;padding:8px 14px;font-size:.82rem;outline:none;transition:border-color .15s}
+  .ai-input:focus{border-color:#4f6ef7;background:#fff}
+  .ai-input::placeholder{color:#9ca3af}
+  .ai-send{width:34px;height:34px;border-radius:50%;background:#4f6ef7;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+  .ai-send:hover{background:#3d5ce5}
+  .ai-send:disabled{opacity:.5;cursor:not-allowed}
+</style>
+
+<button class="ai-fab" id="aiFab" onclick="toggleAiChat()" title="Ask AI Assistant">
+  <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
+
+<div class="ai-popup" id="aiPopup">
+  <div class="ai-head">
+    <div class="ai-avatar">
+      <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    </div>
+    <div class="ai-head-info">
+      <div class="ai-name">QuickDealr AI</div>
+      <div class="ai-status"><span class="ai-status-dot"></span>Online — Ask me anything</div>
+    </div>
+    <button class="ai-close" onclick="toggleAiChat()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="ai-messages" id="aiMsgs">
+    <div class="ai-msg bot">Hi! I am your QuickDealr assistant. I can help you with products, auctions, orders, and wallet questions. What would you like to know?</div>
+  </div>
+  <div class="ai-input-row">
+    <input class="ai-input" id="aiInp" type="text" placeholder="Type your question…" onkeydown="if(event.key==='Enter')sendUserAiMsg()">
+    <button class="ai-send" id="aiSnd" onclick="sendUserAiMsg()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+let aiChatOpen = false;
+function toggleAiChat() {
+  aiChatOpen = !aiChatOpen;
+  document.getElementById('aiPopup').classList.toggle('open', aiChatOpen);
+  if (aiChatOpen) setTimeout(()=>document.getElementById('aiInp').focus(), 300);
+}
+async function sendUserAiMsg() {
+  const inp = document.getElementById('aiInp');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  const msgs = document.getElementById('aiMsgs');
+  const snd  = document.getElementById('aiSnd');
+  const ub = document.createElement('div');
+  ub.className = 'ai-msg user'; ub.textContent = msg;
+  msgs.appendChild(ub);
+  const typ = document.createElement('div');
+  typ.className = 'ai-msg typing';
+  typ.innerHTML = '<div class="ai-typing-dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(typ);
+  msgs.scrollTop = msgs.scrollHeight;
+  snd.disabled = true;
+  try {
+    const res  = await fetch('/ai_chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg})
+    });
+    const data = await res.json();
+    typ.remove();
+    const bb = document.createElement('div');
+    bb.className = 'ai-msg bot';
+    bb.textContent = data.reply || 'Sorry, I could not process that.';
+    msgs.appendChild(bb);
+  } catch(e) {
+    typ.remove();
+    const eb = document.createElement('div');
+    eb.className = 'ai-msg bot';
+    eb.textContent = 'Connection error. Please try again.';
+    msgs.appendChild(eb);
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+  snd.disabled = false;
+  inp.focus();
+}
+</script>
+</body>
+</html>

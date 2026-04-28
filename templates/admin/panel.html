@@ -1,0 +1,598 @@
+{% extends "base_admin.html" %}
+{% block title %}Dashboard — QuickDealr Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- STATS -->
+<div class="page-header">
+  <h1>Overview</h1>
+  <p>Platform health at a glance</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(79,110,247,.15)">
+      <svg width="16" height="16" fill="none" stroke="#4f6ef7" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="stat-num">{{ stats.total_users }}</div>
+    <div class="stat-lbl">Total Users</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(168,85,247,.15)">
+      <svg width="16" height="16" fill="none" stroke="#a855f7" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    </div>
+    <div class="stat-num">{{ stats.total_products }}</div>
+    <div class="stat-lbl">Products</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(245,158,11,.15)">
+      <svg width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    </div>
+    <div class="stat-num">{{ stats.total_orders }}</div>
+    <div class="stat-lbl">Orders</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(34,197,94,.15)">
+      <svg width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div class="stat-num">{{ stats.total_bids }}</div>
+    <div class="stat-lbl">Total Bids</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(34,197,94,.15)">
+      <svg width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div class="stat-num" style="font-size:1.2rem">&#8377;{{ "{:,.0f}".format(stats.total_rev) }}</div>
+    <div class="stat-lbl">Revenue</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(16,185,129,.15)">
+      <svg width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    </div>
+    <div class="stat-num" style="font-size:1.2rem;color:#10b981">&#8377;{{ "{:,.0f}".format(stats.total_rev * 0.02) }}</div>
+    <div class="stat-lbl" style="color:#10b981">Est. Profit (2%)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(239,68,68,.15)">
+      <svg width="16" height="16" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div class="stat-num" style="color:var(--amber)">{{ stats.pending_products }}</div>
+    <div class="stat-lbl">Pending Approval</div>
+  </div>
+</div>
+
+<!-- PENDING APPROVAL -->
+{% set pending = products | selectattr('status', 'equalto', 'pending') | list %}
+{% if pending %}
+<div class="admin-section" id="pending-products">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Pending Approval
+        <span class="section-badge">{{ pending | length }} waiting</span>
+      </h2>
+      <p>Review and approve or reject new product submissions</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>Product</th><th>Seller</th><th>Category</th><th>Price</th><th>Type</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for p in pending %}
+        <tr>
+          <td>
+            <div class="product-cell">
+              <img src="{{ p['image'] or 'https://placehold.co/36x36/1e2333/4a5168?text=?' }}" class="product-thumb" alt="">
+              <div>
+                <div class="product-cell-name">{{ p['name'] }}</div>
+                <div class="product-cell-id">#{{ p['id'] }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="muted">{{ p['seller_name'] }}</td>
+          <td><span class="badge badge-blue">{{ p['category'] }}</span></td>
+          <td class="price-cell">&#8377;{{ "{:,.2f}".format(p['price']) }}</td>
+          <td>
+            {% if p['is_auction'] %}<span class="badge badge-purple">Auction</span>
+            {% else %}<span class="badge badge-muted">Fixed</span>{% endif %}
+          </td>
+          <td>
+            <div class="action-group">
+              <form method="POST" action="{{ url_for('admin.approve_product', pid=p['id']) }}" onsubmit="return confirm('Approve this product?')">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.reject_product', pid=p['id']) }}" onsubmit="return confirmReject(this)">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <input type="hidden" name="reason" value="Does not meet quality standards.">
+                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- ALL PRODUCTS -->
+<div class="admin-section" id="products">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+        Products
+        <span class="badge badge-muted">{{ products | length }}</span>
+      </h2>
+      <p>Approve, deactivate or remove listings</p>
+    </div>
+  </div>
+  <div class="filter-tabs" id="productFilterTabs">
+    <button class="ftab active" onclick="filterProducts('all',this)">All</button>
+    <button class="ftab" onclick="filterProducts('approved',this)">Live</button>
+    <button class="ftab" onclick="filterProducts('pending',this)">Pending</button>
+    <button class="ftab" onclick="filterProducts('rejected',this)">Rejected</button>
+    <button class="ftab" onclick="filterProducts('inactive',this)">Inactive</button>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl" id="productsTable">
+      <thead>
+        <tr><th>Product</th><th>Seller</th><th>Category</th><th>Price</th><th>Bids</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        {% set st = p['status'] if p['status'] else ('approved' if p['approved'] else 'pending') %}
+        <tr data-status="{{ st }}">
+          <td>
+            <div class="product-cell">
+              <img src="{{ p['image'] or 'https://placehold.co/36x36/1e2333/4a5168?text=?' }}" class="product-thumb" alt="">
+              <div>
+                <div class="product-cell-name">{{ p['name'] }}</div>
+                <div class="product-cell-id">#{{ p['id'] }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="muted">{{ p['seller_name'] }}</td>
+          <td><span class="badge badge-blue">{{ p['category'] }}</span></td>
+          <td class="price-cell">&#8377;{{ "{:,.2f}".format(p['price']) }}</td>
+          <td class="mono muted">{{ p['bid_count'] or 0 }}</td>
+          <td>
+            {% if st == 'approved' %}<span class="badge badge-green">Live</span>
+            {% elif st == 'pending' %}<span class="badge badge-amber">Pending</span>
+            {% elif st == 'rejected' %}<span class="badge badge-red">Rejected</span>
+            {% else %}<span class="badge badge-muted">Inactive</span>{% endif %}
+          </td>
+          <td>
+            <div class="action-group">
+              {% if st != 'approved' %}
+              <form method="POST" action="{{ url_for('admin.approve_product', pid=p['id']) }}" onsubmit="return confirm('Approve this product?')">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+              </form>
+              {% endif %}
+              {% if st == 'approved' %}
+              <form method="POST" action="{{ url_for('admin.deactivate_product', pid=p['id']) }}" onsubmit="return confirm('Deactivate this product?')">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <button type="submit" class="btn btn-amber btn-sm">Deactivate</button>
+              </form>
+              {% endif %}
+              <form method="POST" action="{{ url_for('admin.delete_product', pid=p['id']) }}" onsubmit="return confirm('Permanently delete? This cannot be undone.')">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-state">No products listed yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- AUCTIONS -->
+<div class="admin-section" id="auctions">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Auctions
+      </h2>
+      <p>Active and completed auction listings with live countdown</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>Item</th><th>Start Price</th><th>Current Bid</th><th>Bids</th><th>Highest Bidder</th><th>Countdown</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% set auctions = products | selectattr('is_auction', 'equalto', 1) | list %}
+        {% for p in auctions %}
+        <tr>
+          <td>
+            <div class="product-cell">
+              <img src="{{ p['image'] or 'https://placehold.co/36x36/1e2333/4a5168?text=A' }}" class="product-thumb" alt="">
+              <div>
+                <div class="product-cell-name">{{ p['name'] }}</div>
+                <div class="product-cell-id">#{{ p['id'] }}</div>
+              </div>
+            </div>
+          </td>
+          <td class="price-cell">&#8377;{{ "{:,.0f}".format(p['start_price'] or 0) }}</td>
+          <td class="price-cell" style="color:var(--accent)">&#8377;{{ "{:,.0f}".format(p['current_bid'] or p['start_price'] or 0) }}</td>
+          <td class="mono muted">{{ p['bid_count'] or 0 }}</td>
+          <td class="muted">{{ p['highest_bidder'] or '—' }}</td>
+          <td>
+            {% if p['auction_end'] %}
+              <span class="auction-timer mono" data-end="{{ p['auction_end'] }}" style="font-size:.8rem;color:var(--amber);font-weight:600">—</span>
+            {% else %}
+              <span class="muted mono" style="font-size:.75rem">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p['approved'] %}<span class="badge badge-green">Live</span>
+            {% else %}<span class="badge badge-muted">Inactive</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-state">No auctions found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ORDERS -->
+<div class="admin-section" id="orders">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Orders
+        <span class="badge badge-muted">{{ orders | length }}</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>Order ID</th><th>Buyer</th><th>Product</th><th>Amount</th><th>Est. Profit</th><th>Method</th><th>Status</th><th>Update Status</th></tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td class="mono" style="font-size:.75rem;color:var(--text-muted)">QD{{ "%06d"|format(o['id']) }}</td>
+          <td class="muted">{{ o['buyer_name'] }}</td>
+          <td>{{ o['product_name'] }}</td>
+          <td class="price-cell">&#8377;{{ "{:,.2f}".format(o['total_amount'] or o['amount']) }}</td>
+          <td class="price-cell" style="color:#10b981;font-size:.75rem">&#8377;{{ "{:,.2f}".format((o['total_amount'] or o['amount']) * 0.02) }}</td>
+          <td><span class="badge badge-muted">{{ o['payment_method'] | upper }}</span></td>
+          <td>
+            {% set s = o['status'] %}
+            {% if s == 'Delivered' %}<span class="badge badge-green">{{ s }}</span>
+            {% elif s == 'Shipped' %}<span class="badge badge-blue">{{ s }}</span>
+            {% elif s == 'Confirmed' %}<span class="badge badge-amber">{{ s }}</span>
+            {% elif s == 'Cancelled' %}<span class="badge badge-red">{{ s }}</span>
+            {% else %}<span class="badge badge-muted">{{ s }}</span>{% endif %}
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('admin.update_order_status', oid=o['id']) }}" style="display:flex;gap:5px;align-items:center">
+              <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+              <select name="status" class="form-control" style="width:auto;padding:4px 8px;font-size:.75rem">
+                {% for s in ['Placed','Confirmed','Shipped','Delivered','Cancelled'] %}
+                  <option {% if o['status']==s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn-ghost btn-sm">Set</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty-state">No orders yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- USERS -->
+<div class="admin-section" id="users">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Users
+        <span class="badge badge-muted">{{ users | length }}</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Wallet</th><th>Status</th><th>Whitelist</th><th>Joined</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr id="user-row-{{ u['id'] }}">
+          <td class="mono muted">{{ u['id'] }}</td>
+          <td><strong>{{ u['username'] }}</strong></td>
+          <td class="muted" style="font-size:.77rem">{{ u['email'] or '—' }}</td>
+          <td>
+            {% if u['role'] == 'admin' %}<span class="badge badge-purple">Admin</span>
+            {% elif u['role'] == 'seller' %}<span class="badge badge-amber">Seller</span>
+            {% else %}<span class="badge badge-blue">Buyer</span>{% endif %}
+          </td>
+          <td class="price-cell">&#8377;{{ "{:,.2f}".format(u['wallet'] or 0) }}</td>
+          <td>
+            {% if u['is_active'] %}<span class="badge badge-green">Active</span>
+            {% else %}<span class="badge badge-red">Inactive</span>{% endif %}
+          </td>
+          <td>
+            <button
+              onclick="toggleWhitelist({{ u['id'] }}, this)"
+              data-whitelisted="{{ '1' if u['is_whitelisted'] else '0' }}"
+              class="btn btn-sm {% if u['is_whitelisted'] %}btn-success{% else %}btn-ghost{% endif %}"
+              style="min-width:110px">
+              {% if u['is_whitelisted'] %}Whitelisted{% else %}Not Whitelisted{% endif %}
+            </button>
+          </td>
+          <td class="mono muted" style="font-size:.75rem">{{ u['created_at'][:10] if u['created_at'] else '—' }}</td>
+          <td>
+            {% if u['id'] != session.get('user_id') %}
+            <form method="POST" action="{{ url_for('admin.toggle_user', uid=u['id']) }}" onsubmit="return confirm('{{ 'Deactivate' if u['is_active'] else 'Activate' }} this user?')">
+              <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+              <button type="submit" class="btn btn-sm {% if u['is_active'] %}btn-danger{% else %}btn-success{% endif %}">
+                {{ 'Deactivate' if u['is_active'] else 'Activate' }}
+              </button>
+            </form>
+            {% else %}
+            <span class="badge badge-blue">You</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- WALLET TRANSACTIONS (read-only) -->
+<div class="admin-section" id="wallet-txns">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Wallet Transactions
+        <span class="badge badge-muted">View Only</span>
+      </h2>
+      <p>All transactions are automatic. Admin cannot modify balances directly.</p>
+    </div>
+  </div>
+  <div class="info-notice" style="margin:14px 20px;border-radius:var(--radius-sm)">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>Wallet balances are controlled by system logic only. All top-ups are automatically approved. Admin can only view transactions — no manual credits or debits are permitted.</span>
+  </div>
+  {% if wallet_txns %}
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>User</th><th>Amount</th><th>Type</th><th>Method</th><th>Description</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for t in wallet_txns[:30] %}
+        <tr>
+          <td>{{ t['username'] }}</td>
+          <td class="price-cell {% if t['type']=='credit' %}text-green{% else %}text-red{% endif %}">
+            {{ '+' if t['type']=='credit' else '-' }}&#8377;{{ "{:,.2f}".format(t['amount']) }}
+          </td>
+          <td>
+            {% if t['type']=='credit' %}<span class="badge badge-green">Credit</span>
+            {% else %}<span class="badge badge-red">Debit</span>{% endif %}
+          </td>
+          <td class="muted mono" style="font-size:.75rem">{{ t['method'] | upper }}</td>
+          <td class="muted" style="font-size:.77rem">{{ t['description'] or '—' }}</td>
+          <td class="mono muted" style="font-size:.75rem">{{ t['created_at'][:16] if t['created_at'] else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">No transactions yet</div>
+  {% endif %}
+</div>
+
+<!-- QR / UPI SETTINGS -->
+<div class="admin-section" id="settings">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3M16 21h.01M21 21v.01"/></svg>
+        UPI Payment Settings
+      </h2>
+      <p>Set the UPI ID shown to buyers at checkout</p>
+    </div>
+  </div>
+  <div style="padding:20px">
+    <form method="POST" action="{{ url_for('admin.qr_file_upload') }}" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+      <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+      <div style="flex:1;min-width:220px">
+        <label style="display:block;font-size:.72rem;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">UPI ID</label>
+        <input type="text" name="upi_id" value="{{ qr['upi_id'] if qr else '' }}"
+               placeholder="e.g. quickdealr@upi"
+               style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:var(--radius-sm);font-size:.875rem">
+        <p style="font-size:.72rem;color:var(--text-muted);margin-top:4px">This UPI ID is shown to buyers at checkout</p>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-set" style="flex-shrink:0">Save UPI ID</button>
+    </form>
+    {% if qr and qr['upi_id'] %}
+    <div style="margin-top:14px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);display:inline-flex;align-items:center;gap:10px">
+      <svg width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="font-size:.8rem;color:var(--text-muted)">Active UPI:</span>
+      <strong style="font-size:.88rem;color:var(--text)">{{ qr['upi_id'] }}</strong>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- SECURITY LOG -->
+<div class="admin-section" id="security">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Security Log
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>Time</th><th>Action</th><th>User ID</th><th>IP</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        {% for s in sec_logs %}
+        <tr>
+          <td class="mono muted" style="font-size:.73rem">{{ s['created_at'][:16] if s['created_at'] else '—' }}</td>
+          <td>
+            <span class="badge {% if 'bot' in s['action'] or 'fail' in s['action'] or 'block' in s['action'] %}badge-red{% else %}badge-muted{% endif %}">
+              {{ s['action'] }}
+            </span>
+          </td>
+          <td class="mono muted">{{ s['user_id'] or '—' }}</td>
+          <td class="mono" style="font-size:.73rem;color:var(--text-muted)">{{ s['ip_address'] or '—' }}</td>
+          <td class="muted" style="font-size:.77rem">{{ s['detail'] or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-state">No security events recorded</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if blocked %}
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Blocked IPs
+        <span class="badge badge-red">{{ blocked | length }}</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>IP Address</th><th>Reason</th><th>Blocked At</th><th>Expires</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for b in blocked %}
+        <tr>
+          <td class="mono" style="color:var(--red)">{{ b['ip_address'] }}</td>
+          <td class="muted" style="font-size:.77rem">{{ b['reason'] or '—' }}</td>
+          <td class="mono muted" style="font-size:.73rem">{{ b['blocked_at'][:16] if b['blocked_at'] else '—' }}</td>
+          <td class="mono" style="font-size:.73rem;color:var(--amber)">{{ b['expires_at'][:16] if b['expires_at'] else 'Permanent' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin.unblock_ip') }}" onsubmit="return confirm('Unblock this IP?')">
+              <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+              <input type="hidden" name="ip" value="{{ b['ip_address'] }}">
+              <button type="submit" class="btn btn-success btn-sm">Unblock</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- REJECT MODAL -->
+<div id="rejectModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:420px;margin:16px">
+    <h3 style="font-size:.95rem;font-weight:600;margin-bottom:10px;color:var(--text)">Reject Product</h3>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:12px">Provide a reason — the seller will be notified.</p>
+    <textarea id="rejectReasonInput" rows="3" placeholder="e.g. Image quality too low, misleading description…"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:10px;font-size:.82rem;font-family:var(--font);resize:vertical;outline:none"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn btn-ghost btn-sm" onclick="cancelReject()">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="submitReject()">Confirm Reject</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Reject modal
+var _rf = null;
+function confirmReject(form) {
+  _rf = form;
+  document.getElementById('rejectReasonInput').value = '';
+  document.getElementById('rejectModal').style.display = 'flex';
+  document.getElementById('rejectReasonInput').focus();
+  return false;
+}
+function cancelReject() { _rf = null; document.getElementById('rejectModal').style.display = 'none'; }
+function submitReject() {
+  if (!_rf) return;
+  var r = document.getElementById('rejectReasonInput').value.trim();
+  if (!r) { showToast('Please enter a rejection reason.','error'); return; }
+  _rf.querySelector('input[name="reason"]').value = r;
+  document.getElementById('rejectModal').style.display = 'none';
+  _rf.submit();
+}
+
+// Whitelist toggle (AJAX)
+function toggleWhitelist(uid, btn) {
+  const csrf = document.querySelector('meta[name="csrf-token"]') ?
+    document.querySelector('meta[name="csrf-token"]').content :
+    '{{ g.csrf_token }}';
+
+  fetch('/admin/toggle_whitelist/' + uid, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: '_csrf=' + encodeURIComponent(csrf)
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const isNow = data.whitelisted;
+      btn.dataset.whitelisted = isNow ? '1' : '0';
+      btn.textContent = isNow ? 'Whitelisted' : 'Not Whitelisted';
+      btn.className = 'btn btn-sm ' + (isNow ? 'btn-success' : 'btn-ghost');
+      btn.style.minWidth = '110px';
+      showToast(isNow ? 'User whitelisted.' : 'Whitelist removed.', 'success');
+    } else {
+      showToast(data.error || 'Error updating whitelist.', 'error');
+    }
+  })
+  .catch(() => showToast('Network error.', 'error'));
+}
+
+// Auction countdown timer HH:MM:SS
+function updateTimers() {
+  document.querySelectorAll('.auction-timer').forEach(function(el) {
+    var end = new Date(el.dataset.end.replace(' ', 'T'));
+    var now = new Date();
+    var diff = Math.max(0, Math.floor((end - now) / 1000));
+    if (diff === 0) { el.textContent = 'Ended'; el.style.color = 'var(--red)'; return; }
+    var h = Math.floor(diff / 3600);
+    var m = Math.floor((diff % 3600) / 60);
+    var s = diff % 60;
+    el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  });
+}
+updateTimers();
+setInterval(updateTimers, 1000);
+</script>
+
+{% endblock %}

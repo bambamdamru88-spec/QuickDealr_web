@@ -1,0 +1,59 @@
+{% extends "base_admin.html" %}
+{% block title %}Auctions — QuickDealr Admin{% endblock %}
+{% block page_title %}Auctions{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Auctions</h1>
+  <p>Monitor all live and scheduled auctions</p>
+</div>
+
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        All Auctions <span class="section-badge">{{ products|length }}</span>
+      </h2>
+      <p>Live auctions and bid activity</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>Product</th><th>Seller</th><th>Start Price</th><th>Current Bid</th><th>Bids</th><th>Ends At</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>
+            <div class="product-cell">
+              <img class="product-thumb" src="{{ p.image or 'https://via.placeholder.com/44?text=?' }}" alt="">
+              <div>
+                <div class="product-cell-name">{{ p.name }}</div>
+                <div class="product-cell-id">#{{ p.id }}</div>
+              </div>
+            </div>
+          </td>
+          <td style="font-size:.8rem">{{ p.seller_name or '—' }}</td>
+          <td class="price-cell">&#8377;{{ "{:,.2f}".format(p.start_price or 0) }}</td>
+          <td class="price-cell" style="color:#22c55e">
+            {% if p.current_bid %}&#8377;{{ "{:,.2f}".format(p.current_bid) }}{% else %}<span style="color:var(--text-muted)">No bids</span>{% endif %}
+          </td>
+          <td style="font-weight:700">{{ p.bid_count or 0 }}</td>
+          <td style="font-size:.78rem;color:var(--text-muted)">{{ p.auction_end[:16] if p.auction_end else '—' }}</td>
+          <td>
+            {% if p.auction_end and p.auction_end > now_str %}
+              <span class="badge badge-green">Live</span>
+            {% else %}
+              <span class="badge badge-muted">Ended</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-row">No auctions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

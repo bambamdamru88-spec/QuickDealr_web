@@ -1,0 +1,38 @@
+<div class="product-card {% if p['is_auction'] %}is-auction{% endif %}">
+  <a href="{{ url_for('buyer.auction_detail' if p['is_auction'] else 'buyer.product_detail', pid=p['id']) }}" class="pcard-img">
+    <img src="{{ p['image'] or 'https://via.placeholder.com/300x200?text=No+Image' }}" alt="{{ p['name'] }}" loading="lazy">
+    {% if p['is_auction'] %}<span class="pcard-badge auction">AUCTION</span>{% endif %}
+    {% if p['is_live'] %}<span class="pcard-badge live">LIVE</span>{% endif %}
+  </a>
+  <button class="heart-btn {% if p['id'] in wl %}liked{% endif %}"
+          onclick="event.preventDefault();toggleWish({{ p['id'] }},this)"
+          title="{% if p['id'] in wl %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}"
+          aria-label="Toggle Wishlist">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="{% if p['id'] in wl %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2.5">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+  </button>
+  <div class="pcard-body">
+    <span class="pcard-cat">{{ p['category'] }}</span>
+    <h3 class="pcard-name">
+      <a href="{{ url_for('buyer.auction_detail' if p['is_auction'] else 'buyer.product_detail', pid=p['id']) }}">{{ p['name'] }}</a>
+    </h3>
+    {% if p['is_auction'] %}
+      <div class="pcard-bid-info">
+        <span>Bid: <strong>&#8377;{{ "{:,.0f}".format(p['current_bid'] or p['start_price']) }}</strong></span>
+        <span class="bid-ct">{{ p['bid_count'] }} bids</span>
+      </div>
+      <div class="pcard-timer" data-secs="{{ seconds_left(p['auction_end']) }}">&#9203; --:--</div>
+      <a href="{{ url_for('buyer.auction_detail',pid=p['id']) }}" class="btn-bid-sm">Bid Now</a>
+    {% else %}
+      <div class="pcard-price">&#8377;{{ "{:,.2f}".format(p['price']) }}</div>
+      <div class="pcard-actions">
+        <form method="POST" action="{{ url_for('buyer.add_cart', pid=p['id']) }}" style="flex:1">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-addcart">Add to Cart</button>
+        </form>
+        <a href="{{ url_for('buyer.buy_now', pid=p['id']) }}" class="btn-buynow">Buy Now</a>
+      </div>
+    {% endif %}
+  </div>
+</div>

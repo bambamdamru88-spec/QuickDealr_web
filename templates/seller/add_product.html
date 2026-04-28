@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Add Product — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding:2rem 1rem 4rem;max-width:720px">
+  <a href="{{ url_for('seller.dashboard') }}" class="back-lnk"> Back to Dashboard</a>
+  <h1 class="pg-title">List a Product</h1>
+
+  <div class="form-card">
+    <form method="POST" enctype="multipart/form-data" class="listing-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="form-row-2">
+        <div class="fg">
+          <label>Product Name *</label>
+          <input type="text" name="name" placeholder="e.g. Nike Air Max 270" required>
+        </div>
+        <div class="fg">
+          <label>Price (&#8377;) *</label>
+          <input type="number" name="price" step="0.01" min="1" placeholder="999.99" required>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="fg">
+          <label>Category *</label>
+          <select name="category" required>
+            <option value="">Select a category...</option>
+            {% for c in categories %}
+              <option value="{{ c['name'] }}">{{ c['name'] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label>Stock Quantity</label>
+          <input type="number" name="stock" min="1" value="1">
+        </div>
+      </div>
+
+      <!-- Image upload + URL fallback -->
+      <div class="fg">
+        <label>Product Image</label>
+        <div class="image-upload-box" id="imgUploadBox" onclick="document.getElementById('imgFileInput').click()">
+          <input type="file" name="image_file" id="imgFileInput" accept="image/*"
+                 style="display:none" onchange="previewImage(this)">
+          <div id="imgPreviewWrap" style="display:none">
+            <img id="imgPreview" src="" alt="Preview" style="max-height:180px;max-width:100%;border-radius:8px">
+            <button type="button" class="img-clear-btn" onclick="clearImage(event)">Remove</button>
+          </div>
+          <div id="imgUploadPrompt">
+            <div class="img-upload-icon"></div>
+            <div>Click to upload image</div>
+            <div class="img-upload-hint">PNG, JPG, WEBP up to 10MB</div>
+          </div>
+        </div>
+        <div class="img-url-row">
+          <span>Or paste image URL:</span>
+          <input type="url" name="image_url" id="imageUrlInput"
+                 placeholder="https://example.com/photo.jpg">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Description</label>
+        <textarea name="description" rows="4" placeholder="Describe your product in detail..."></textarea>
+      </div>
+
+      <div class="fg auction-toggle-wrap">
+        <label class="toggle-label">
+          <input type="checkbox" name="is_auction" id="auctionToggle" onchange="toggleAuction(this)">
+          <span class="toggle-switch"></span>
+          List as Auction (buyers will bid on this item)
+        </label>
+      </div>
+      <div id="auctionFields" style="display:none" class="auction-fields-box">
+        <div class="fg">
+          <label>Auction Duration <span style="font-weight:400;color:var(--muted)">(DD:HH:MM)</span></label>
+          <input type="text" name="auction_duration" id="auctionDurationInput"
+                 pattern="\d{2}:\d{2}:\d{2}" placeholder="00:00:00" autocomplete="off"
+                 style="font-family:monospace;font-size:1.05rem;letter-spacing:.08em">
+          <small>Format: Days : Hours : Minutes &mdash; e.g. <strong>01:00:00</strong> = 1 day, <strong>00:06:00</strong> = 6 hours</small>
+          <div class="dur-presets" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem">
+            <button type="button" class="dur-preset" data-val="00:01:00">1 Hour</button>
+            <button type="button" class="dur-preset" data-val="00:06:00">6 Hours</button>
+            <button type="button" class="dur-preset" data-val="01:00:00">1 Day</button>
+            <button type="button" class="dur-preset" data-val="03:00:00">3 Days</button>
+            <button type="button" class="dur-preset" data-val="07:00:00">1 Week</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('seller.dashboard') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-primary">Submit for Approval &#8594;</button>
+      </div>
+    </form>
+  </div>
+  <div class="info-banner" style="margin-top:1.5rem">
+    Your product will be reviewed by admin before it appears to buyers.
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function toggleAuction(cb){ document.getElementById('auctionFields').style.display=cb.checked?'block':'none'; }
+function previewImage(inp) {
+  if (!inp.files||!inp.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('imgPreview').src = e.target.result;
+    document.getElementById('imgPreviewWrap').style.display = 'flex';
+    document.getElementById('imgUploadPrompt').style.display = 'none';
+  };
+  reader.readAsDataURL(inp.files[0]);
+}
+function clearImage(e) {
+  e.stopPropagation();
+  document.getElementById('imgFileInput').value = '';
+  document.getElementById('imgPreviewWrap').style.display = 'none';
+  document.getElementById('imgUploadPrompt').style.display = 'block';
+}
+
+// ── Auction Duration: DD:HH:MM ──
+(function() {
+  const input = document.getElementById('auctionDurationInput');
+  const presets = document.querySelectorAll('.dur-preset');
+
+  function setDuration(val) {
+    if (!input) return;
+    input.value = val;
+    // Highlight selected preset
+    presets.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.val === val);
+    });
+  }
+
+  // Wire preset buttons
+  presets.forEach(btn => {
+    btn.addEventListener('click', () => setDuration(btn.dataset.val));
+  });
+
+  // Auto-format input as user types: only digits + colons, enforce DD:HH:MM
+  if (input) {
+    input.addEventListener('input', function() {
+      let raw = this.value.replace(/[^\d]/g, '').slice(0, 6);
+      let fmt = '';
+      if (raw.length > 4) fmt = raw.slice(0,2) + ':' + raw.slice(2,4) + ':' + raw.slice(4,6);
+      else if (raw.length > 2) fmt = raw.slice(0,2) + ':' + raw.slice(2,4);
+      else fmt = raw;
+      this.value = fmt;
+      // Deactivate all presets when manually editing
+      presets.forEach(btn => btn.classList.remove('active'));
+    });
+
+    // Validate on form submit
+    const form = input.closest('form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const isAuction = document.getElementById('auctionToggle').checked;
+        if (!isAuction) return;
+        const val = input.value.trim();
+        if (!val || !/^\d{2}:\d{2}:\d{2}$/.test(val)) {
+          e.preventDefault();
+          input.focus();
+          input.style.borderColor = '#ef4444';
+          input.placeholder = 'Required: DD:HH:MM';
+          return;
+        }
+        const [dd, hh, mm] = val.split(':').map(Number);
+        if (dd === 0 && hh === 0 && mm === 0) {
+          e.preventDefault();
+          input.focus();
+          input.style.borderColor = '#ef4444';
+          alert('Please select a duration greater than 0.');
+        }
+      });
+    }
+  }
+})();
+</script>
+{% endblock %}

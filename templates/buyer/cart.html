@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Cart — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding:2rem 1rem 4rem">
+  <h1 class="pg-title">Your Cart</h1>
+  {% if items %}
+  <div class="cart-layout">
+    <div class="cart-items-col">
+      {% for i in items %}
+      <div class="cart-row">
+        <img src="{{ i['image'] or 'https://via.placeholder.com/100?text=?' }}" alt="{{ i['name'] }}">
+        <div class="cart-row-info">
+          <h3>{{ i['name'] }}</h3>
+          <span class="cart-cat">{{ i['category'] }}</span>
+          <div class="cart-row-price">&#8377;{{ "{:,.2f}".format(i['price']) }} each</div>
+        </div>
+        <div class="cart-row-right">
+          <!-- Quantity control -->
+          <form method="POST" action="{{ url_for('buyer.update_cart_qty', cid=i['cid']) }}" class="qty-form">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <div class="qty-ctrl">
+              <button type="submit" name="qty" value="{{ [i['quantity']-1, 1]|max }}" class="qty-btn qty-minus">&#8722;</button>
+              <span class="qty-val">{{ i['quantity'] }}</span>
+              <button type="submit" name="qty" value="{{ [i['quantity']+1, 20]|min }}" class="qty-btn qty-plus">&#43;</button>
+            </div>
+          </form>
+          <div class="cart-sub">&#8377;{{ "{:,.2f}".format(i['price']*i['quantity']) }}</div>
+          <form method="POST" action="{{ url_for('buyer.remove_cart', cid=i['cid']) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn-rm">Remove</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="cart-summary-col">
+      <h3>Order Summary</h3>
+      <div class="cs-row"><span>Subtotal</span><span>&#8377;{{ "{:,.2f}".format(total) }}</span></div>
+      <div class="cs-row"><span>Delivery</span><span>{% if total >= 500 %}<span style="color:#22c55e">FREE</span>{% else %}&#8377;49{% endif %}</span></div>
+      {% if total > 1000 %}
+      <div class="cs-row" style="color:#22c55e"><span>Discount (5%)</span><span>-&#8377;{{ "{:,.2f}".format(total*0.05) }}</span></div>
+      {% endif %}
+      <div class="cs-row total"><span>Total</span><span>&#8377;{{ "{:,.2f}".format(total + (0 if total>=500 else 49) - (total*0.05 if total>1000 else 0)) }}</span></div>
+      <a href="{{ url_for('buyer.checkout', mode='cart') }}" class="btn-checkout-lg" style="display:block;text-align:center">Proceed to Checkout</a>
+      <a href="{{ url_for('buyer.home') }}" class="btn-cont-shop">&#8592; Continue Shopping</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state"><h3>Your cart is empty</h3>
+    <p>Add products to your cart to checkout.</p>
+    <a href="{{ url_for('buyer.home') }}" class="btn-primary">Start Shopping</a></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Edit Product — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding:2rem 1rem 4rem;max-width:720px">
+  <a href="{{ url_for('seller.dashboard') }}" class="back-lnk">← Back to Dashboard</a>
+  <h1 class="pg-title"> Edit Product</h1>
+  <div class="form-card">
+    <form method="POST" class="listing-form">
+      <div class="form-row-2">
+        <div class="fg">
+          <label>Product Name *</label>
+          <input type="text" name="name" value="{{ p['name'] }}" required>
+        </div>
+        <div class="fg">
+          <label>Price (&#8377;) *</label>
+          <input type="number" name="price" step="0.01" min="1" value="{{ p['price'] }}" required>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="fg">
+          <label>Category</label>
+          <select name="category">
+            {% for c in categories %}
+              <option value="{{ c['name'] }}" {% if p['category']==c['name'] %}selected{% endif %}>
+                {{ c['name'] }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label>Stock</label>
+          <input type="number" name="stock" min="0" value="{{ p['stock'] }}">
+        </div>
+      </div>
+      <div class="fg">
+        <label>Image URL</label>
+        <input type="url" name="image" value="{{ p['image'] }}">
+      </div>
+      <div class="fg">
+        <label>Description</label>
+        <textarea name="description" rows="4">{{ p['description'] }}</textarea>
+      </div>
+      <div class="form-actions">
+        <a href="{{ url_for('seller.dashboard') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-primary">Save & Re-submit </button>
+      </div>
+    </form>
+  </div>
+  <div class="info-banner" style="margin-top:1.5rem">
+    ℹ Editing a product will re-submit it for admin approval.
+  </div>
+</div>
+{% endblock %}

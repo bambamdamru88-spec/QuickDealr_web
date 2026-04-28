@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}About — QuickDealr{% endblock %}
+{% block content %}
+
+<!-- HERO -->
+<section class="about-hero">
+  <div class="about-hero-inner">
+    <div class="about-hero-text">
+      <div class="about-badge">India's Live Marketplace</div>
+      <h1>Shop Smart.<br>Bid Live.<br><em>Win Big.</em></h1>
+      <p>QuickDealr connects real buyers with real sellers. Every product, every auction — 100% user-driven with no middlemen.</p>
+      <div class="about-hero-cta">
+        {% if session.get('user_id') %}
+        <a href="{{ url_for('buyer.home') }}" class="btn-hero-primary">Browse Products</a>
+        <a href="{{ url_for('buyer.auctions_list') }}" class="btn-hero-ghost">Live Auctions</a>
+        {% else %}
+        <a href="{{ url_for('auth.register') }}" class="btn-hero-primary">Get Started Free</a>
+        <a href="{{ url_for('auth.login') }}" class="btn-hero-ghost">Login</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="about-hero-visual">
+      <div class="about-stat-grid">
+        <div class="about-stat"><span>10K+</span><label>Active Users</label></div>
+        <div class="about-stat"><span>50K+</span><label>Products Listed</label></div>
+        <div class="about-stat"><span>&#8377;Cr+</span><label>Total GMV</label></div>
+        <div class="about-stat"><span>99.9%</span><label>Uptime</label></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="about-features-section">
+  <div class="container">
+    <div class="about-section-label">What We Offer</div>
+    <h2 class="about-section-title">Everything You Need in One Platform</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feat-icon feat-icon-blue"></div>
+        <h3>Live Auctions</h3>
+        <p>Bid in real-time on exclusive items. Our Socket.IO-powered auction engine updates bids instantly with anti-bot protection built-in.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon feat-icon-green"></div>
+        <h3>Smart Wallet</h3>
+        <p>Top up your wallet and use it across the platform. Admin-verified top-ups keep transactions safe and fraud-free.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon feat-icon-amber"></div>
+        <h3>Secure Checkout</h3>
+        <p>Pay via COD, Card, UPI/QR, or Wallet. Every form is CSRF-protected and all payments are validated server-side.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon feat-icon-pink"></div>
+        <h3>Promo Codes</h3>
+        <p>Apply percentage or fixed discount codes at checkout. Admin controls code validity, usage limits, and minimum order values.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon feat-icon-purple"></div>
+        <h3>Order Tracking</h3>
+        <p>Real-time order status updates from Placed to Delivered. Download PDF invoices, cancel orders, and contact sellers directly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon feat-icon-teal"></div>
+        <h3>Role-Based Security</h3>
+        <p>Separate admin and user apps on different ports. Session isolation, rate limiting, and security logs protect every action.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="about-how-section">
+  <div class="container">
+    <div class="about-section-label">How It Works</div>
+    <h2 class="about-section-title">Three Simple Steps</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Create Your Account</h3>
+          <p>Sign up as a buyer to shop and bid, or as a seller to list products. Get &#8377;1000 welcome wallet bonus instantly.</p>
+        </div>
+      </div>
+      <div class="how-connector"></div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Browse, Bid, or List</h3>
+          <p>Buyers explore products and live auctions. Sellers submit listings for admin approval. Everyone gets a fair, transparent experience.</p>
+        </div>
+      </div>
+      <div class="how-connector"></div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Pay Securely, Receive Fast</h3>
+          <p>Choose your payment method, place your order, and download your invoice. Estimated delivery in 3–5 business days.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section class="about-mission-section">
+  <div class="container">
+    <div class="about-mission-card">
+      
+      <h2>Our Mission</h2>
+      <p>We believe commerce should be transparent, fair, and accessible to everyone. QuickDealr was built to give independent sellers a professional platform and buyers the confidence of secure, verified transactions — all in one place.</p>
+      <div class="mission-values">
+        <span>Transparency</span>
+        <span>Security</span>
+        <span>Community</span>
+        <span>Innovation</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="about-cta-section">
+  <div class="container">
+    <div class="about-cta-card">
+      <h2>Ready to get started?</h2>
+      <p>Join thousands of buyers and sellers on QuickDealr today.</p>
+      {% if session.get('user_id') %}
+      <a href="{{ url_for('buyer.home') }}" class="btn-hero-primary">Go to Marketplace</a>
+      {% else %}
+      <a href="{{ url_for('auth.register') }}" class="btn-hero-primary">Create Free Account</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

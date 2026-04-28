@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed — QuickDealr{% endblock %}
+{% block content %}
+<div class="success-page">
+  <div class="success-card">
+    <div class="success-anim" id="successAnim">
+      <svg class="checkmark" viewBox="0 0 52 52">
+        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+      </svg>
+    </div>
+    <h1>Order Confirmed!</h1>
+    <p class="success-sub">Your order has been placed successfully. Estimated delivery in 3–5 business days.</p>
+
+    <div class="order-id-badge">#QD{{ "%06d"|format(order['id']) }}</div>
+
+    <div class="success-details">
+      <div class="detail-row"><span>Product</span><strong>{{ order['product_name'] }}</strong></div>
+      <div class="detail-row"><span>Quantity</span><strong>{{ order['quantity'] }}</strong></div>
+      <div class="detail-row"><span>Payment</span><strong>{{ order['payment_method'] | upper }}</strong></div>
+      <div class="detail-row">
+        <span>Payment Status</span>
+        <strong class="{% if order['payment_status']=='paid' %}status-paid{% else %}status-pending{% endif %}">
+          {{ order['payment_status'] | upper }}
+        </strong>
+      </div>
+      {% if order['transaction_id'] %}
+      <div class="detail-row"><span>Transaction ID</span><strong>{{ order['transaction_id'] }}</strong></div>
+      {% endif %}
+      <div class="detail-row"><span>Subtotal</span><strong>&#8377;{{ "{:,.2f}".format(order['amount']) }}</strong></div>
+      <div class="detail-row"><span>Delivery</span><strong>&#8377;{{ "{:,.2f}".format(order['delivery_fee']) }}</strong></div>
+      {% if order['discount'] > 0 %}
+      <div class="detail-row"><span>Promo Discount</span><strong style="color:#16a34a">-&#8377;{{ "{:,.2f}".format(order['discount']) }}</strong></div>
+      {% endif %}
+      <div class="detail-row total-row"><span>Total Paid</span><strong>&#8377;{{ "{:,.2f}".format(order['total_amount']) }}</strong></div>
+    </div>
+
+    {% if addr %}
+    <div class="delivery-address-box">
+      <h4>Delivering To</h4>
+      <p><strong>{{ addr['full_name'] }}</strong> &nbsp;&middot;&nbsp; {{ addr['phone'] }}</p>
+      <p>{{ addr['full_address'] }}{% if addr['landmark'] %}, Near {{ addr['landmark'] }}{% endif %}</p>
+      <p>{{ addr['city'] }}, {{ addr['state'] }} &mdash; {{ addr['pincode'] }}</p>
+    </div>
+    {% endif %}
+
+    <div class="delivery-estimate-banner">
+      Estimated Delivery: 3–5 business days from {{ order['created_at'][:10] if order['created_at'] else 'today' }}
+    </div>
+
+    <div class="success-actions">
+      <a href="{{ url_for('buyer.download_invoice', oid=order['id']) }}" class="btn-invoice">Download Invoice</a>
+      <a href="{{ url_for('buyer.orders') }}" class="btn-orders">View All Orders</a>
+      <a href="{{ url_for('buyer.home') }}" class="btn-home">Continue Shopping</a>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER CONFIRMED POPUP -->
+<div id="orderPopup" class="order-popup-overlay">
+  <div class="order-popup-box">
+    <div class="popup-check">&#10003;</div>
+    <h2>Order Confirmed!</h2>
+    <p>Order #QD{{ "%06d"|format(order['id']) }} placed successfully.</p>
+    <button class="popup-close-btn" onclick="closePopup()">Great, Thanks!</button>
+  </div>
+</div>
+
+<style>
+/* Checkmark animation */
+.success-anim { display:flex; justify-content:center; margin-bottom:1.5rem; }
+.checkmark { width:72px; height:72px; border-radius:50%; display:block; stroke-width:3; stroke:#22c55e; stroke-miterlimit:10; }
+.checkmark-circle { stroke-dasharray:166; stroke-dashoffset:166; stroke-width:3; animation:stroke .6s cubic-bezier(.65,0,.45,1) forwards; }
+.checkmark-check  { transform-origin:50% 50%; stroke-dasharray:48; stroke-dashoffset:48; animation:stroke .3s cubic-bezier(.65,0,.45,1) .6s forwards; }
+@keyframes stroke { 100% { stroke-dashoffset:0; } }
+
+/* Popup */
+.order-popup-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;z-index:9999;
+  backdrop-filter:blur(4px);
+}
+.order-popup-box {
+  background:#fff;border-radius:20px;padding:2.5rem;
+  text-align:center;max-width:360px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popIn { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+.popup-check {
+  width:72px;height:72px;border-radius:50%;background:#dcfce7;
+  color:#16a34a;font-size:2.2rem;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.25rem;
+}
+.order-popup-box h2 { font-size:1.4rem;font-weight:800;margin-bottom:.5rem;color:#0f172a; }
+.order-popup-box p  { color:#64748b;margin-bottom:1.5rem; }
+.popup-close-btn {
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;border:none;border-radius:50px;padding:.75rem 2rem;
+  font-size:.95rem;font-weight:700;cursor:pointer;width:100%;
+  transition:transform .15s;
+}
+.popup-close-btn:hover { transform:translateY(-1px); }
+</style>
+
+<script>
+// Show popup on load then auto-dismiss after 5s
+window.addEventListener('load', function() {
+  var popup = document.getElementById('orderPopup');
+  popup.style.display = 'flex';
+  setTimeout(closePopup, 5000);
+});
+function closePopup() {
+  var popup = document.getElementById('orderPopup');
+  popup.style.opacity = '0';
+  popup.style.transition = 'opacity .3s';
+  setTimeout(function(){ popup.style.display = 'none'; }, 300);
+}
+</script>
+{% endblock %}

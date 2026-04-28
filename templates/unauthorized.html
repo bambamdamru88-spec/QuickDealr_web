@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Unauthorized — QuickDealr{% endblock %}
+{% block content %}
+<div class="error-page">
+  <div class="error-card">
+    <div class="error-code">403</div>
+    <div class="error-icon"></div>
+    <h1>Access Denied</h1>
+    <p>{{ reason or 'You do not have permission to view this page.' }}</p>
+    <div class="error-role-note">
+      {% if session.get('role') == 'buyer' %}
+        As a <strong>Buyer</strong>, you can only access the shopping area.
+      {% elif session.get('role') == 'seller' %}
+        As a <strong>Seller</strong>, you can only access the seller dashboard.
+      {% elif session.get('role') == 'admin' %}
+        As an <strong>Admin</strong>, you can only access the admin panel.
+      {% endif %}
+    </div>
+    <a href="
+      {%- if session.get('role') == 'seller' -%}{{ url_for('seller.dashboard') }}
+      {%- elif session.get('role') == 'admin' -%}{{ url_for('admin.dashboard') }}
+      {%- else -%}{{ url_for('buyer.home') }}
+      {%- endif -%}" class="btn-primary">← Back to My Dashboard</a>
+  </div>
+</div>
+{% endblock %}

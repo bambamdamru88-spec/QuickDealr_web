@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Blog — QuickDealr{% endblock %}
+{% block content %}
+<div class="info-page">
+  <div class="container">
+    <div class="info-page-header">
+      <div class="info-breadcrumb"><a href="/">Home</a> / Blog</div>
+      <h1>QuickDealr Blog</h1>
+      <p>Tips, updates, and insights from the QuickDealr team.</p>
+    </div>
+
+    <div class="blog-grid">
+
+      <article class="blog-card">
+        <div class="blog-card-label">Platform Update &middot; April 2025</div>
+        <h2>Introducing Real-Time Auction Polling</h2>
+        <p>Our auction engine now includes an HTTP polling fallback so bid updates reach every watcher, even when WebSocket connections are interrupted. We built a reliable dual-layer real-time system so you never miss a bid.</p>
+        <div class="blog-card-footer">
+          <a href="/contact" class="blog-read-more">Read more &rarr;</a>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <div class="blog-card-label">Seller Tips &middot; March 2025</div>
+        <h2>5 Ways to Write Product Descriptions That Convert</h2>
+        <p>Clear, detailed product descriptions build buyer trust and drive higher bids. We share the five most impactful improvements sellers can make to their listings today to stand out and sell faster.</p>
+        <div class="blog-card-footer">
+          <a href="/contact" class="blog-read-more">Read more &rarr;</a>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <div class="blog-card-label">Buyer Guide &middot; February 2025</div>
+        <h2>How to Win More Auctions Without Overpaying</h2>
+        <p>Bidding strategy matters. We break down when to bid, how to use watch lists, and why last-minute bids often win &mdash; without breaking your budget or overpaying for items.</p>
+        <div class="blog-card-footer">
+          <a href="/contact" class="blog-read-more">Read more &rarr;</a>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <div class="blog-card-label">Security &middot; January 2025</div>
+        <h2>Our Approach to Payment Security</h2>
+        <p>Every payment flow on QuickDealr is protected by CSRF tokens, server-side validation, and role-based access controls. Here is how we think about security at every layer of the platform.</p>
+        <div class="blog-card-footer">
+          <a href="/contact" class="blog-read-more">Read more &rarr;</a>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <div class="blog-card-label">Product &middot; December 2024</div>
+        <h2>DD:HH:MM — Better Auction Duration Control for Sellers</h2>
+        <p>Sellers now set auction durations in Days, Hours, and Minutes with quick-select presets. No more confusion over hour-only formats. Set exactly how long you want your auction to run with a single click.</p>
+        <div class="blog-card-footer">
+          <a href="/seller-guide" class="blog-read-more">See seller guide &rarr;</a>
+        </div>
+      </article>
+
+      <article class="blog-card">
+        <div class="blog-card-label">Community &middot; November 2024</div>
+        <h2>Welcome to QuickDealr</h2>
+        <p>We launched QuickDealr to make live commerce accessible to everyone in India. Our goal is a marketplace that is transparent, fast, and trustworthy &mdash; for both buyers and sellers.</p>
+        <div class="blog-card-footer">
+          <a href="/about" class="blog-read-more">About us &rarr;</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base_admin.html" %}
+{% block title %}Transactions — QuickDealr Admin{% endblock %}
+{% block page_title %}Transactions{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Transactions</h1>
+  <p>Orders and wallet transactions across the platform</p>
+</div>
+
+<!-- Orders Section -->
+<div class="admin-section" style="margin-bottom:24px">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Orders <span class="section-badge">{{ orders|length }}</span>
+      </h2>
+      <p>Last 200 orders</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>Order ID</th><th>Buyer</th><th>Product</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+        <tr>
+          <td class="order-id-cell">QD{{ "%06d"|format(o.id) }}</td>
+          <td style="font-size:.8rem">{{ o.buyer_name or '—' }}</td>
+          <td style="font-size:.8rem;max-width:160px">{{ o.product_name or '—' }}</td>
+          <td class="price-cell">&#8377;{{ "{:,.2f}".format(o.total_amount or o.amount or 0) }}</td>
+          <td><span class="badge badge-blue">{{ o.payment_method or '—' }}</span></td>
+          <td>
+            <span class="badge
+              {% if o.status=='Delivered' %}badge-green
+              {% elif o.status=='Cancelled' %}badge-red
+              {% elif o.status=='Shipped' %}badge-blue
+              {% else %}badge-amber{% endif %}">
+              {{ o.status }}
+            </span>
+          </td>
+          <td style="font-size:.72rem;color:var(--text-muted)">{{ o.created_at[:16] if o.created_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-row">No orders found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Wallet Transactions Section -->
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        Wallet Transactions <span class="section-badge">{{ wallet_txns|length }}</span>
+      </h2>
+      <p>Last 100 wallet credits and debits</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>User ID</th><th>Type</th><th>Amount</th><th>Description</th><th>Method</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for t in wallet_txns %}
+        <tr>
+          <td style="font-size:.78rem;color:var(--text-muted)">{{ t.user_id }}</td>
+          <td>
+            <span class="badge {% if t.type=='credit' %}badge-green{% else %}badge-red{% endif %}">
+              {{ t.type|upper }}
+            </span>
+          </td>
+          <td class="price-cell {% if t.type=='credit' %}txn-credit{% else %}txn-debit{% endif %}">
+            {% if t.type=='credit' %}+{% else %}-{% endif %}&#8377;{{ "{:,.2f}".format(t.amount or 0) }}
+          </td>
+          <td class="detail-cell">{{ t.description or '—' }}</td>
+          <td style="font-size:.78rem">{{ t.method or '—' }}</td>
+          <td style="font-size:.72rem;color:var(--text-muted)">{{ t.created_at[:16] if t.created_at else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-row">No transactions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

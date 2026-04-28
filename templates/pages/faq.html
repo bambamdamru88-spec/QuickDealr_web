@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}FAQ — QuickDealr{% endblock %}
+{% block content %}
+<div class="info-page">
+  <div class="container">
+    <div class="info-page-header">
+      <div class="info-breadcrumb"><a href="/">Home</a> / FAQ</div>
+      <h1>Frequently Asked Questions</h1>
+      <p>Find answers to the most common questions about QuickDealr.</p>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary>How do I place a bid in a live auction?</summary>
+        <div class="faq-body">Navigate to the Live Auctions page, open any active auction, enter your bid amount (must exceed the current highest bid), and click Place Bid. Your wallet balance will be checked and the bid is confirmed instantly. All other bidders are notified in real time.</div>
+      </details>
+      <details class="faq-item">
+        <summary>What happens if I win an auction?</summary>
+        <div class="faq-body">You will receive a notification immediately after the auction ends. You must complete payment within the allotted time (usually 24 hours). Go to Orders, find your won auction, and complete checkout. Failure to pay may result in account restrictions.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How do I top up my wallet?</summary>
+        <div class="faq-body">Go to Wallet from the navigation menu, click Top Up, and submit a top-up request with the amount. An admin will verify and credit your wallet within 24 hours. You will receive a notification once it is approved.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Can I cancel an order after placing it?</summary>
+        <div class="faq-body">Orders can be cancelled only before they are marked as Shipped by the seller. Go to My Orders, find the relevant order, and click Cancel. For auction wins, cancellation may incur penalties.</div>
+      </details>
+      <details class="faq-item">
+        <summary>How do I become a seller on QuickDealr?</summary>
+        <div class="faq-body">Register with the Seller role selected during sign-up. Once logged in, go to the Seller Dashboard and click Add Product to list your first item. All listings require admin approval before they go live to buyers.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Is my payment information secure?</summary>
+        <div class="faq-body">Yes. All forms are CSRF-protected and payment details are validated server-side. We do not store raw card numbers. Wallet transactions are the recommended and safest payment method on the platform.</div>
+      </details>
+    </div>
+  </div>
+</div>
+{% endblock %}

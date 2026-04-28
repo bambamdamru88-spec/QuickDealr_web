@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}How Auctions Work — QuickDealr{% endblock %}
+{% block content %}
+<div class="info-page">
+  <div class="container">
+    <div class="info-page-header">
+      <div class="info-breadcrumb"><a href="/">Home</a> / How Auctions Work</div>
+      <h1>How Auctions Work</h1>
+      <p>Everything you need to know about live bidding on QuickDealr.</p>
+    </div>
+    <div class="how-steps-page">
+      <div class="how-step-card">
+        <div class="hsc-num">01</div>
+        <div class="hsc-body">
+          <h3>Seller Lists a Product</h3>
+          <p>A verified seller creates an auction listing with a starting price and a duration (from 1 hour up to 1 week). Once approved by an admin, the auction goes live and is visible to all buyers.</p>
+        </div>
+      </div>
+      <div class="how-step-card">
+        <div class="hsc-num">02</div>
+        <div class="hsc-body">
+          <h3>Buyers Watch and Bid</h3>
+          <p>Any registered buyer can enter a live auction page. Bids must exceed the current highest bid. The platform uses real-time WebSocket technology — every new bid is instantly shown to all watchers without refreshing the page.</p>
+        </div>
+      </div>
+      <div class="how-step-card">
+        <div class="hsc-num">03</div>
+        <div class="hsc-body">
+          <h3>Outbid Notifications</h3>
+          <p>If someone outbids you, you receive an immediate in-app notification. You can return to the auction page and place a higher bid before the timer runs out.</p>
+        </div>
+      </div>
+      <div class="how-step-card">
+        <div class="hsc-num">04</div>
+        <div class="hsc-body">
+          <h3>Auction Ends — Winner Declared</h3>
+          <p>When the countdown reaches zero, the highest bidder wins the item. Both the winner and the seller are notified. The winning bid amount is the final purchase price.</p>
+        </div>
+      </div>
+      <div class="how-step-card">
+        <div class="hsc-num">05</div>
+        <div class="hsc-body">
+          <h3>Payment and Delivery</h3>
+          <p>The winner completes payment via Wallet, Card, UPI, or COD within the payment window. The seller then ships the item and updates the order status. You can download your invoice at any time.</p>
+        </div>
+      </div>
+    </div>
+    <div class="info-cta-box">
+      <h2>Ready to start bidding?</h2>
+      <p>Browse live auctions happening right now on QuickDealr.</p>
+      <a href="{{ url_for('buyer.auctions_list') if session.get('user_id') else url_for('auth.login') }}" class="btn-hero-primary">View Live Auctions</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

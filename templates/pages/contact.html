@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Contact Us — QuickDealr{% endblock %}
+{% block content %}
+<div class="contact-page">
+  <div class="container">
+    <div class="info-page-header">
+      <div class="info-breadcrumb"><a href="/">Home</a> / Contact</div>
+      <h1>Contact Us</h1>
+      <p>Have a question, feedback, or need support? We will get back to you within 24 hours.</p>
+    </div>
+    <div class="contact-grid">
+
+      <!-- LEFT: info -->
+      <div class="contact-info-col">
+        <div class="contact-info-inner">
+          <div class="contact-details">
+            <div class="contact-detail-item">
+              <div class="contact-detail-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <strong>Email</strong>
+                <div>support@quickdealr.com</div>
+              </div>
+            </div>
+            <div class="contact-detail-item">
+              <div class="contact-detail-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div>
+                <strong>Address</strong>
+                <div>Mumbai, Maharashtra, India</div>
+              </div>
+            </div>
+            <div class="contact-detail-item">
+              <div class="contact-detail-icon">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div>
+                <strong>Support Hours</strong>
+                <div>Mon&ndash;Sat, 9am&ndash;6pm IST</div>
+              </div>
+            </div>
+          </div>
+          <div class="contact-info-note">
+            <p>You can also reach us through the <a href="/faq">FAQ page</a> for quick answers to common questions.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: form -->
+      <div class="contact-form-col">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }}" style="margin-bottom:1rem;padding:.85rem 1.1rem;border-radius:10px;font-size:.88rem;font-weight:600;background:{% if cat=='success' %}#f0fdf4{% else %}#fef2f2{% endif %};color:{% if cat=='success' %}#16a34a{% else %}#ef4444{% endif %};border:1px solid {% if cat=='success' %}rgba(34,197,94,.2){% else %}rgba(239,68,68,.2){% endif %};">{{ msg }}</div>
+          {% endfor %}
+        {% endwith %}
+        <div class="contact-form-card">
+          <h2>Send a Message</h2>
+          <form method="POST" action="{{ url_for('buyer.contact') }}" class="contact-form" id="contactForm">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <div class="form-row-2">
+              <div class="fg">
+                <label>Your Name <span style="color:#ef4444">*</span></label>
+                <input type="text" name="name" required placeholder="Full name">
+              </div>
+              <div class="fg">
+                <label>Email Address <span style="color:#ef4444">*</span></label>
+                <input type="email" name="email" required placeholder="you@example.com">
+              </div>
+            </div>
+            <div class="fg">
+              <label>Subject</label>
+              <input type="text" name="subject" placeholder="What is this about?">
+            </div>
+            <div class="fg">
+              <label>Message <span style="color:#ef4444">*</span></label>
+              <textarea name="message" rows="5" required placeholder="Describe your question or issue in detail..."></textarea>
+            </div>
+            <button type="submit" class="btn-contact-submit" id="contactBtn">
+              Send Message
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

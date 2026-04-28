@@ -1,0 +1,152 @@
+{% extends "base_admin.html" %}
+{% block title %}Wallet Requests — Admin{% endblock %}
+{% block page_title %}Wallet Requests{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Wallet Top-Up Requests</h1>
+  <p>Review and approve or reject user wallet funding requests</p>
+</div>
+
+{% set pending_list = reviewed | selectattr('status','equalto','pending') | list %}
+{% set done_list    = reviewed | rejectattr('status','equalto','pending') | list %}
+
+<!-- Pending -->
+{% if pending_list %}
+<div class="admin-section" style="margin-bottom:20px">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Pending Review
+        <span class="section-badge">{{ pending_list | length }}</span>
+      </h2>
+      <p>These requests are awaiting your decision</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Amount</th><th>Method</th><th>Card / TXN</th><th>Submitted</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for r in pending_list %}
+        <tr>
+          <td class="mono muted">#{{ r['id'] }}</td>
+          <td>
+            <strong>{{ r['username'] }}</strong>
+            <div class="product-cell-id">ID {{ r['user_id'] }}</div>
+          </td>
+          <td style="font-family:var(--mono);font-weight:700;color:var(--green)">&#8377;{{ "{:,.2f}".format(r['amount']) }}</td>
+          <td><span class="badge badge-blue">{{ r['method'] | upper }}</span></td>
+          <td class="mono muted" style="font-size:.73rem">
+            {% if r['card_last4'] %}xxxx {{ r['card_last4'] }}<br>{% endif %}
+            {{ r['transaction_id'] or '—' }}
+          </td>
+          <td class="mono muted" style="font-size:.73rem">{{ r['created_at'][:16] if r['created_at'] else '—' }}</td>
+          <td>
+            <div class="action-group">
+              <form method="POST" action="{{ url_for('admin.approve_wallet_request', req_id=r['id']) }}"
+                    onsubmit="return confirm('Approve &#8377;{{ '%.2f'|format(r['amount']) }} for {{ r['username'] }}?')">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <input type="hidden" name="note" value="Approved by admin.">
+                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.reject_wallet_request', req_id=r['id']) }}"
+                    onsubmit="return handleReject(this)">
+                <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+                <input type="hidden" name="note" value="Rejected by admin.">
+                <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="admin-section" style="margin-bottom:20px">
+  <div class="empty-state" style="padding:36px">
+    <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.3" viewBox="0 0 24 24" style="opacity:.25;margin-bottom:12px"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <p>No pending wallet requests — all caught up!</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- History -->
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 7 7 7"/></svg>
+        Request History
+        <span class="badge badge-muted">{{ reviewed | length }}</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>ID</th><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Admin Note</th><th>Reviewed</th></tr>
+      </thead>
+      <tbody>
+        {% for r in reviewed %}
+        <tr>
+          <td class="mono muted">#{{ r['id'] }}</td>
+          <td>{{ r['username'] }}</td>
+          <td style="font-family:var(--mono);color:var(--text)">&#8377;{{ "{:,.2f}".format(r['amount']) }}</td>
+          <td><span class="badge badge-muted">{{ r['method'] | upper }}</span></td>
+          <td>
+            {% if r['status'] == 'approved' %}<span class="badge badge-green">Approved</span>
+            {% elif r['status'] == 'rejected' %}<span class="badge badge-red">Rejected</span>
+            {% else %}<span class="badge badge-amber">Pending</span>{% endif %}
+          </td>
+          <td class="muted" style="font-size:.77rem">{{ r['admin_note'] or '—' }}</td>
+          <td class="mono muted" style="font-size:.73rem">{{ r['reviewed_at'][:16] if r['reviewed_at'] else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-state">No requests yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Reject reason modal -->
+<div id="rejectWalletModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;margin:16px">
+    <h3 style="font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:8px">Reject Request</h3>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:12px">Provide a reason for the user.</p>
+    <textarea id="rejectWalletReason" rows="3" placeholder="e.g. Invalid transaction ID, payment not received…"
+      style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:10px;font-size:.82rem;font-family:var(--font);resize:vertical;outline:none;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="cancelWalletReject()">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="submitWalletReject()">Reject</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var _wrf = null;
+function handleReject(form) {
+  _wrf = form;
+  document.getElementById('rejectWalletReason').value = '';
+  document.getElementById('rejectWalletModal').style.display = 'flex';
+  document.getElementById('rejectWalletReason').focus();
+  return false;
+}
+function cancelWalletReject() {
+  _wrf = null;
+  document.getElementById('rejectWalletModal').style.display = 'none';
+}
+function submitWalletReject() {
+  if (!_wrf) return;
+  var reason = document.getElementById('rejectWalletReason').value.trim();
+  if (reason) _wrf.querySelector('input[name="note"]').value = reason;
+  document.getElementById('rejectWalletModal').style.display = 'none';
+  _wrf.submit();
+}
+</script>
+{% endblock %}

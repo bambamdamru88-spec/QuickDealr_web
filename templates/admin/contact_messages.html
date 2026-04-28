@@ -1,0 +1,94 @@
+{% extends "base_admin.html" %}
+{% block title %}Messages — QuickDealr Admin{% endblock %}
+{% block page_title %}Contact Messages{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Contact Messages</h1>
+  <p>User support and enquiry messages</p>
+</div>
+
+{% set unresolved = msgs | selectattr('resolved', 'equalto', 0) | list %}
+{% set resolved   = msgs | selectattr('resolved', 'ne', 0) | list %}
+
+{% if unresolved %}
+<div class="admin-section" style="margin-bottom:20px">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Unresolved
+        <span class="section-badge">{{ unresolved | length }}</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>From</th><th>Email</th><th>Subject</th><th>Message</th><th>Received</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for m in unresolved %}
+        <tr>
+          <td><strong>{{ m['name'] }}</strong></td>
+          <td class="muted" style="font-size:.77rem">{{ m['email'] or '—' }}</td>
+          <td style="font-weight:500">{{ m['subject'] or '—' }}</td>
+          <td class="muted" style="font-size:.77rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m['message'] }}</td>
+          <td class="mono muted" style="font-size:.73rem">{{ m['created_at'][:16] if m['created_at'] else '—' }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin.resolve_message', mid=m['id']) }}"
+                  onsubmit="return confirm('Mark as resolved?')">
+              <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
+              <button type="submit" class="btn btn-success btn-sm">Resolve</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        All Messages
+        <span class="badge badge-muted">{{ msgs | length }}</span>
+      </h2>
+    </div>
+  </div>
+  {% if msgs %}
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>From</th><th>Email</th><th>Subject</th><th>Message</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for m in msgs %}
+        <tr>
+          <td><strong>{{ m['name'] }}</strong></td>
+          <td class="muted" style="font-size:.77rem">{{ m['email'] or '—' }}</td>
+          <td style="font-weight:500;font-size:.82rem">{{ m['subject'] or '—' }}</td>
+          <td class="muted" style="font-size:.77rem;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m['message'] }}</td>
+          <td>
+            {% if m['resolved'] %}<span class="badge badge-green">Resolved</span>
+            {% else %}<span class="badge badge-amber">Open</span>{% endif %}
+          </td>
+          <td class="mono muted" style="font-size:.73rem">{{ m['created_at'][:16] if m['created_at'] else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-state">No messages yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state" style="padding:40px">
+    <p>No contact messages received yet.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

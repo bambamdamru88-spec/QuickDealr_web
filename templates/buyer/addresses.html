@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}My Addresses — QuickDealr{% endblock %}
+{% block content %}
+<div class="container" style="padding-top:2rem">
+  <div class="page-header">
+    <h1> My Addresses</h1>
+    <p>Manage your saved delivery addresses</p>
+  </div>
+
+  <div class="addresses-layout">
+    <div class="address-cards">
+      {% if addresses %}
+        {% for addr in addresses %}
+        <div class="address-manage-card {% if addr['is_default'] %}default{% endif %}">
+          {% if addr['is_default'] %}<div class="addr-default-label"> Default</div>{% endif %}
+          <div class="addr-name-row">
+            <strong>{{ addr['full_name'] }}</strong>
+            <span>{{ addr['phone'] }}</span>
+          </div>
+          <div class="addr-text">{{ addr['full_address'] }}{% if addr['landmark'] %}, Near {{ addr['landmark'] }}{% endif %}</div>
+          <div class="addr-location">{{ addr['city'] }}, {{ addr['state'] }} — {{ addr['pincode'] }}</div>
+          <div class="addr-actions">
+            {% if not addr['is_default'] %}
+            <form method="POST" action="{{ url_for('buyer.set_default_address', aid=addr['id']) }}" style="display:inline">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-sm">Set Default</button>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('buyer.delete_address', aid=addr['id']) }}" style="display:inline" onsubmit="return confirm('Delete this address?')">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-sm btn-danger-sm">Delete</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty-state"><span></span><h3>No addresses saved</h3><p>Add your first delivery address below.</p></div>
+      {% endif %}
+    </div>
+
+    <div class="add-address-form-card">
+      <h3>Add New Address</h3>
+      <form method="POST" action="{{ url_for('buyer.add_address') }}" class="addr-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <div class="fg"><label>Full Name *</label><input type="text" name="full_name" required placeholder="John Doe"></div>
+        <div class="fg"><label>Phone Number *</label><input type="tel" name="phone" required placeholder="10-digit mobile" maxlength="10"></div>
+        <div class="fg"><label>Full Address *</label><textarea name="full_address" rows="3" required placeholder="House/Flat No, Street, Area"></textarea></div>
+        <div class="fg"><label>Landmark</label><input type="text" name="landmark" placeholder="Near landmark (optional)"></div>
+        <div class="addr-row-3">
+          <div class="fg"><label>City *</label><input type="text" name="city" required placeholder="Mumbai"></div>
+          <div class="fg"><label>State *</label><input type="text" name="state" required placeholder="Maharashtra"></div>
+          <div class="fg"><label>Pincode *</label><input type="text" name="pincode" required placeholder="400001" maxlength="6" pattern="\d{6}"></div>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%">Save Address</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

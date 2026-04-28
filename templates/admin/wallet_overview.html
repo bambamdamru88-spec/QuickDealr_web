@@ -1,0 +1,85 @@
+{% extends "base_admin.html" %}
+{% block title %}Wallet Overview — QuickDealr Admin{% endblock %}
+{% block page_title %}Wallet{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Wallet Overview</h1>
+  <p>View user balances and transaction history. Balances are managed automatically by the system.</p>
+</div>
+
+<div class="info-notice" style="margin-bottom:20px">
+  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <span>Admin cannot credit, debit, or modify any user wallet balance. All transactions are processed automatically. This page is read-only.</span>
+</div>
+
+<!-- BALANCES -->
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        User Wallet Balances
+      </h2>
+      <p>Sorted by balance (highest first)</p>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>User</th><th>Balance</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td><strong>{{ u['username'] }}</strong></td>
+          <td class="price-cell" style="font-size:.9rem">&#8377;{{ "{:,.2f}".format(u['wallet'] or 0) }}</td>
+          <td><span class="badge badge-muted">{{ u['role'] | title }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="empty-state">No users found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="admin-section">
+  <div class="section-head">
+    <div>
+      <h2>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Transaction History
+        <span class="badge badge-muted">Read Only</span>
+      </h2>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <table class="admin-tbl">
+      <thead>
+        <tr><th>User</th><th>Amount</th><th>Type</th><th>Method</th><th>Description</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for t in txns %}
+        <tr>
+          <td>{{ t['username'] }}</td>
+          <td class="price-cell {% if t['type']=='credit' %}text-green{% else %}text-red{% endif %}">
+            {{ '+' if t['type']=='credit' else '-' }}&#8377;{{ "{:,.2f}".format(t['amount']) }}
+          </td>
+          <td>
+            {% if t['type']=='credit' %}<span class="badge badge-green">Credit</span>
+            {% else %}<span class="badge badge-red">Debit</span>{% endif %}
+          </td>
+          <td class="muted mono" style="font-size:.75rem">{{ t['method'] | upper }}</td>
+          <td class="muted" style="font-size:.77rem">{{ t['description'] or '—' }}</td>
+          <td class="mono muted" style="font-size:.75rem">{{ t['created_at'][:16] if t['created_at'] else '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-state">No transactions found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

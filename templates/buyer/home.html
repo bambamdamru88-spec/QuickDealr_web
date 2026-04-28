@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block title %}QuickDealr — Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+.dash-hero{background:#060d1f;position:relative;overflow:hidden;min-height:320px}
+.dash-hero::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 80% at 10% 50%,rgba(79,110,247,.32) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 85% 20%,rgba(109,40,217,.24) 0%,transparent 55%),radial-gradient(ellipse 40% 50% at 55% 85%,rgba(245,158,11,.1) 0%,transparent 50%)}
+.dash-hero::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:52px 52px;-webkit-mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 20%,transparent 100%);mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 20%,transparent 100%)}
+.dash-hero-inner{max-width:1320px;margin:0 auto;padding:3.5rem 1.5rem 3rem;display:grid;grid-template-columns:1fr auto;gap:2.5rem;align-items:center;position:relative;z-index:1}
+@media(max-width:700px){.dash-hero-inner{grid-template-columns:1fr}}
+.dash-greeting-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);border-radius:50px;color:#93c5fd;font-size:.78rem;font-weight:700;padding:.32rem .9rem;margin-bottom:1.1rem;letter-spacing:.03em;animation:fadeUp .45s ease both}
+.g-dot{width:6px;height:6px;background:#4ade80;border-radius:50%;animation:blk2 1.2s infinite;flex-shrink:0}
+.dash-hero h1{font-family:var(--serif);color:#fff;font-size:clamp(1.7rem,3.5vw,2.8rem);line-height:1.12;margin-bottom:.75rem;animation:fadeUp .5s .08s ease both}
+.dash-hero h1 em{font-style:normal;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.dash-hero-sub{color:rgba(255,255,255,.58);font-size:.95rem;line-height:1.65;max-width:440px;animation:fadeUp .5s .16s ease both}
+.dash-hero-actions{display:flex;gap:.75rem;margin-top:1.6rem;flex-wrap:wrap;animation:fadeUp .5s .24s ease both}
+.dha-primary{background:linear-gradient(135deg,#4f6ef7,#6d28d9);color:#fff;padding:.7rem 1.6rem;border-radius:10px;font-weight:700;font-size:.88rem;box-shadow:0 3px 16px rgba(79,110,247,.35);transition:all .2s;display:inline-flex;align-items:center;gap:.45rem}
+.dha-primary:hover{box-shadow:0 6px 24px rgba(79,110,247,.5);transform:translateY(-1px)}
+.dha-ghost{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.18);padding:.7rem 1.4rem;border-radius:10px;font-weight:600;font-size:.88rem;transition:all .2s}
+.dha-ghost:hover{background:rgba(255,255,255,.13)}
+.dash-stat-cluster{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;animation:fadeUp .5s .2s ease both}
+.dsc-card{background:rgba(255,255,255,.07);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:1.1rem 1.25rem;min-width:130px;transition:background .2s}
+.dsc-card:hover{background:rgba(255,255,255,.1)}
+.dsc-val{font-size:1.65rem;font-weight:900;color:#fff;letter-spacing:-.04em;font-family:var(--serif);line-height:1}
+.dsc-val.mono{font-family:monospace;font-size:1.2rem}
+.dsc-lbl{font-size:.7rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-top:.35rem}
+.dsc-link{font-size:.7rem;color:#93c5fd;margin-top:.4rem;display:block}
+.dsc-badge{display:inline-flex;align-items:center;gap:.3rem;background:rgba(239,68,68,.18);color:#fca5a5;font-size:.65rem;font-weight:800;border-radius:50px;padding:.18rem .55rem;margin-top:.4rem;letter-spacing:.04em}
+.b-dot{width:5px;height:5px;background:#ef4444;border-radius:50%;animation:blk2 1s infinite;flex-shrink:0}
+.dsc-badge.green{background:rgba(34,197,94,.15);color:#4ade80}
+.dsc-badge.green .b-dot{background:#4ade80}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blk2{0%,100%{opacity:1}50%{opacity:.3}}
+.dash-body{max-width:1320px;margin:0 auto;padding:2.5rem 1.5rem 3rem}
+.dash-section{margin-bottom:2.75rem}
+.dash-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
+.dash-section-hdr h2{font-size:1rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:.55rem;line-height:1}
+.dash-section-hdr a{font-size:.8rem;font-weight:700;color:#4f6ef7}
+.dash-section-hdr a:hover{text-decoration:underline}
+.sic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.si-b{background:rgba(79,110,247,.12);color:#4f6ef7}
+.si-g{background:rgba(34,197,94,.1);color:#16a34a}
+.si-a{background:rgba(245,158,11,.12);color:#d97706}
+.si-p{background:rgba(168,85,247,.1);color:#7c3aed}
+.si-r{background:rgba(239,68,68,.1);color:#ef4444}
+.auc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:1rem}
+.auc-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;transition:all .22s;box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.auc-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.1);transform:translateY(-4px);border-color:rgba(79,110,247,.3)}
+.auc-card.leading{border-color:rgba(34,197,94,.4)}
+.auc-thumb{width:100%;height:120px;object-fit:cover;background:var(--bg);display:block}
+.auc-thumb-ph{width:100%;height:120px;background:linear-gradient(135deg,#f1f5f9,#e2e8f0);display:flex;align-items:center;justify-content:center}
+.auc-body{padding:.85rem 1rem 1rem;flex:1;display:flex;flex-direction:column;gap:.3rem}
+.auc-name{font-size:.85rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.auc-price{font-size:1rem;font-weight:900;color:#4f6ef7}
+.auc-price small{font-size:.68rem;font-weight:600;color:var(--muted)}
+.auc-row{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:.4rem}
+.auc-pill{font-size:.62rem;font-weight:800;padding:.18rem .52rem;border-radius:50px;border:1px solid;background:rgba(239,68,68,.07);color:#ef4444;border-color:rgba(239,68,68,.2);text-transform:uppercase}
+.auc-card.leading .auc-pill{background:rgba(34,197,94,.09);color:#16a34a;border-color:rgba(34,197,94,.2)}
+.auc-timer{font-size:.7rem;color:var(--muted);font-weight:600}
+.auc-cta{margin-top:.65rem;display:flex;align-items:center;justify-content:center;background:rgba(79,110,247,.07);color:#4f6ef7;border:1.5px solid rgba(79,110,247,.2);border-radius:9px;padding:.46rem;font-size:.78rem;font-weight:700;transition:all .18s}
+.auc-card:hover .auc-cta{background:#4f6ef7;color:#fff;border-color:#4f6ef7}
+.won-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.85rem}
+.won-card{background:var(--white);border:1.5px solid rgba(34,197,94,.28);border-radius:14px;padding:.9rem 1rem;display:flex;align-items:center;gap:.75rem;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.04);text-decoration:none;color:inherit}
+.won-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px)}
+.won-thumb{width:48px;height:48px;border-radius:9px;object-fit:cover;background:var(--bg);flex-shrink:0}
+.won-info{flex:1;min-width:0}
+.won-name{font-size:.83rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.won-amt{font-size:.8rem;font-weight:800;color:#16a34a;margin-top:.1rem}
+.won-date{font-size:.7rem;color:var(--muted);margin-top:.08rem}
+.won-pill{font-size:.62rem;font-weight:800;background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2);border-radius:50px;padding:.18rem .52rem;flex-shrink:0}
+.dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2.75rem}
+@media(max-width:860px){.dash-cols{grid-template-columns:1fr}}
+.tbl-box{background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow:hidden}
+.dtbl{width:100%;border-collapse:collapse}
+.dtbl th{font-size:.66rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;padding:.55rem 1rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.dtbl td{padding:.7rem 1rem;border-bottom:1px solid var(--border);font-size:.82rem;vertical-align:middle}
+.dtbl tbody tr:last-child td{border-bottom:none}
+.dtbl tbody tr:hover td{background:rgba(79,110,247,.025)}
+.dtbl-name{font-weight:600;color:var(--text);max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;text-decoration:none}
+.dtbl-amt{font-weight:800;color:#4f6ef7}
+.spill{font-size:.61rem;font-weight:800;padding:.17rem .52rem;border-radius:50px;border:1px solid;white-space:nowrap}
+.sp-lead{background:rgba(34,197,94,.1);color:#16a34a;border-color:rgba(34,197,94,.2)}
+.sp-out{background:rgba(239,68,68,.08);color:#ef4444;border-color:rgba(239,68,68,.15)}
+.sp-end{background:var(--bg);color:var(--muted);border-color:var(--border)}
+.orow{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:.88rem 1.1rem;display:flex;align-items:center;gap:.85rem;transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.03);text-decoration:none;color:inherit}
+.orow:hover{box-shadow:0 6px 20px rgba(0,0,0,.07);transform:translateY(-1px)}
+.orow-img{width:44px;height:44px;border-radius:9px;object-fit:cover;background:var(--bg);flex-shrink:0}
+.orow-info{flex:1;min-width:0}
+.orow-name{font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orow-meta{font-size:.72rem;color:var(--muted);margin-top:.14rem}
+.orow-right{text-align:right;flex-shrink:0}
+.orow-amt{font-size:.88rem;font-weight:800}
+.orow-st{font-size:.7rem;font-weight:700;margin-top:.2rem}
+.st-placed{color:#2563eb}.st-shipped{color:#d97706}.st-delivered{color:#16a34a}.st-cancelled{color:#ef4444}.st-processing{color:#7c3aed}
+.dash-empty{text-align:center;padding:2rem 1rem;background:var(--white);border:1.5px dashed var(--border);border-radius:16px}
+.dash-empty p{color:var(--muted);font-size:.875rem}
+.dash-empty a{color:#4f6ef7;font-weight:700}
+.dash-divider{height:1px;background:var(--border);margin:0 0 2.5rem}
+.live-pill{display:inline-flex;align-items:center;gap:.3rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:.67rem;font-weight:800;padding:.2rem .62rem;border-radius:50px;letter-spacing:.04em}
+.l-dot{width:5px;height:5px;background:#ef4444;border-radius:50%;animation:blk2 1s infinite}
+/* Full-width bid cards */
+.bids-full-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.bid-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit;box-shadow:0 2px 10px rgba(0,0,0,.05);transition:all .22s;padding:0}
+.bid-card:hover{box-shadow:0 10px 32px rgba(0,0,0,.12);transform:translateY(-4px);border-color:rgba(79,110,247,.35)}
+.bid-card.bid-leading{border-color:rgba(34,197,94,.35)}
+.bid-card.bid-leading:hover{border-color:rgba(34,197,94,.6)}
+.bid-card.bid-outbid{border-color:rgba(239,68,68,.25)}
+.bid-card-img{width:100%;height:130px;object-fit:cover;display:block}
+.bid-card-img-ph{width:100%;height:130px;background:linear-gradient(135deg,#f1f5f9,#e2e8f0);display:flex;align-items:center;justify-content:center}
+.bid-card-body{padding:1rem 1.1rem 1.1rem;display:flex;flex-direction:column;gap:.4rem;flex:1}
+.bid-card-name{font-size:.88rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bid-card-amount{font-size:1.1rem;font-weight:900;color:#4f6ef7;letter-spacing:-.02em}
+.bid-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.3rem}
+.bid-timer{font-size:.7rem;color:var(--muted);font-weight:600}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-hero">
+  <div class="dash-hero-inner">
+    <div>
+      <div class="dash-greeting-tag"><span class="g-dot"></span>Welcome back, <strong>{{ session.get('username') }}</strong></div>
+      <h1>Your <em>Marketplace</em><br>Dashboard</h1>
+      <p class="dash-hero-sub">Track bids, manage orders, and explore live auctions — all in one place.</p>
+      <div class="dash-hero-actions">
+        <a href="{{ url_for('buyer.auctions_list') }}" class="dha-primary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Live Auctions
+        </a>
+        <a href="#products" class="dha-ghost">Browse Products</a>
+      </div>
+    </div>
+    <div class="dash-stat-cluster">
+      <div class="dsc-card">
+        <div class="dsc-val mono">&#8377;{{ "{:,.0f}".format(wallet) }}</div>
+        <div class="dsc-lbl">Wallet</div>
+        <a class="dsc-link" href="{{ url_for('wallet.wallet_home') }}">Top up</a>
+      </div>
+      <div class="dsc-card">
+        <div class="dsc-val" id="liveCount">—</div>
+        <div class="dsc-lbl">Live Now</div>
+        <span class="dsc-badge"><span class="b-dot"></span>LIVE</span>
+      </div>
+      <div class="dsc-card">
+        <div class="dsc-val">{{ total_orders }}</div>
+        <div class="dsc-lbl">Orders</div>
+        <a class="dsc-link" href="{{ url_for('buyer.orders') }}">View all</a>
+      </div>
+      <div class="dsc-card">
+        <div class="dsc-val">{{ total_wins }}</div>
+        <div class="dsc-lbl">Wins</div>
+        {% if total_wins > 0 %}<span class="dsc-badge green"><span class="b-dot"></span>WINNER</span>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dash-body">
+
+  <!-- Active Bids -->
+  {% if active_auctions %}
+  <div class="dash-section">
+    <div class="dash-section-hdr">
+      <h2><span class="sic si-b"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>Your Active Bids <span class="live-pill"><span class="l-dot"></span>LIVE</span></h2>
+      <a href="{{ url_for('buyer.auctions_list') }}">All auctions</a>
+    </div>
+    <div class="auc-grid">
+      {% for a in active_auctions %}
+      <a href="{{ url_for('buyer.auction_detail', pid=a['id']) }}" class="auc-card {% if a['is_leading'] %}leading{% endif %}">
+        {% if a['image'] %}<img class="auc-thumb" src="{{ a['image'] }}" alt="{{ a['name'] }}" loading="lazy">
+        {% else %}<div class="auc-thumb-ph"><svg width="28" height="28" fill="none" stroke="#cbd5e1" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>{% endif %}
+        <div class="auc-body">
+          <div class="auc-name">{{ a['name'] }}</div>
+          <div class="auc-price">&#8377;{{ "{:,.0f}".format(a['current_bid']) }} <small>current bid</small></div>
+          <div class="auc-row">
+            <span class="auc-pill">{% if a['is_leading'] %}Leading{% else %}Outbid{% endif %}</span>
+            <span class="auc-timer" data-end="{{ a['auction_end'] }}">—</span>
+          </div>
+          <div class="auc-cta">Bid Now</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Won Auctions -->
+  {% if won_auctions %}
+  <div class="dash-section">
+    <div class="dash-section-hdr">
+      <h2><span class="sic si-g"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></span>Auctions Won</h2>
+      <a href="{{ url_for('buyer.orders') }}">View orders</a>
+    </div>
+    <div class="won-grid">
+      {% for a in won_auctions %}
+      <a href="{{ url_for('buyer.orders') }}" class="won-card">
+        {% if a['image'] %}<img class="won-thumb" src="{{ a['image'] }}" alt="{{ a['name'] }}">
+        {% else %}<div class="won-thumb" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)"></div>{% endif %}
+        <div class="won-info">
+          <div class="won-name">{{ a['name'] }}</div>
+          <div class="won-amt">&#8377;{{ "{:,.0f}".format(a['current_bid']) }}</div>
+          <div class="won-date">{{ a['auction_end'][:10] if a['auction_end'] else '' }}</div>
+        </div>
+        <span class="won-pill">Won</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recent Bids — full width -->
+  <div class="dash-section">
+    <div class="dash-section-hdr">
+      <h2><span class="sic si-p"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>Recent Bids</h2>
+      <a href="{{ url_for('buyer.auctions_list') }}">All auctions</a>
+    </div>
+    {% if user_bids %}
+    <div class="bids-full-grid">
+      {% for b in user_bids %}
+      <a href="{{ url_for('buyer.auction_detail', pid=b['product_id']) }}" class="bid-card {% if b['auction_end'] and b['auction_end'] > now_utc and b['is_leading'] %}bid-leading{% elif b['auction_end'] and b['auction_end'] > now_utc and not b['is_leading'] %}bid-outbid{% else %}bid-ended{% endif %}">
+        {% if b['product_image'] %}
+        <img class="bid-card-img" src="{{ b['product_image'] }}" alt="{{ b['product_name'] }}" loading="lazy">
+        {% else %}
+        <div class="bid-card-img bid-card-img-ph">
+          <svg width="24" height="24" fill="none" stroke="#cbd5e1" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        {% endif %}
+        <div class="bid-card-body">
+          <div class="bid-card-name">{{ b['product_name']|truncate(32) }}</div>
+          <div class="bid-card-amount">&#8377;{{ "{:,.0f}".format(b['amount']) }}</div>
+          <div class="bid-card-footer">
+            {% if b['auction_end'] and b['auction_end'] > now_utc %}
+              <span class="spill {% if b['is_leading'] %}sp-lead{% else %}sp-out{% endif %}">{% if b['is_leading'] %}&#10003; Winning{% else %}&#8593; Outbid{% endif %}</span>
+              <span class="bid-timer" data-end="{{ b['auction_end'] }}">—</span>
+            {% else %}
+              <span class="spill sp-end">Ended</span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="dash-empty"><p>No bids yet. <a href="{{ url_for('buyer.auctions_list') }}">Enter a live auction</a>.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="dash-divider"></div>
+
+  <!-- Auction Banner -->
+  <section style="margin-bottom:2.5rem">
+    <a href="{{ url_for('buyer.auctions_list') }}" class="auction-banner-card">
+      <div class="auction-banner-glow"></div>
+      <div class="auction-banner-content">
+        <div class="auction-live-dot"></div>
+        <div>
+          <h2>Live Auctions Running Now</h2>
+          <p>Bid on exclusive items. Highest bidder wins. Real-time updates.</p>
+        </div>
+        <span class="auction-banner-cta">Enter Auctions</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- Category bar -->
+  <div class="cat-bar" style="margin:0 -1.5rem 1.5rem;padding:0 1.5rem">
+    <div class="cat-bar-inner">
+      <a href="{{ url_for('buyer.home') }}" class="cat-pill {% if not active_cat %}active{% endif %}">All</a>
+      {% for c in active_cats %}
+      <a href="{{ url_for('buyer.home', category=c['category']) }}" class="cat-pill {% if active_cat==c['category'] %}active{% endif %}">{{ c['category'] }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Products section -->
+  {% if search_q or active_cat or min_p or max_p %}
+  <section id="products" style="margin-bottom:3rem">
+    <div class="filter-bar" style="margin-bottom:1.5rem">
+      <form method="GET" action="{{ url_for('buyer.home') }}" class="filter-form">
+        <input type="hidden" name="q" value="{{ search_q }}">
+        <input type="hidden" name="category" value="{{ active_cat }}">
+        <div class="filter-group"><label>Min</label><input type="number" name="min_price" value="{{ min_p }}" placeholder="0"></div>
+        <div class="filter-group"><label>Max</label><input type="number" name="max_price" value="{{ max_p }}" placeholder="Any"></div>
+        <div class="filter-group"><label>Sort</label>
+          <select name="sort">
+            <option value="latest" {% if sort=='latest' %}selected{% endif %}>Latest</option>
+            <option value="price_asc" {% if sort=='price_asc' %}selected{% endif %}>Price Low</option>
+            <option value="price_desc" {% if sort=='price_desc' %}selected{% endif %}>Price High</option>
+            <option value="popular" {% if sort=='popular' %}selected{% endif %}>Popular</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-filter">Apply</button>
+        <a href="{{ url_for('buyer.home') }}" class="btn-filter-clear">Clear</a>
+      </form>
+    </div>
+    <div class="results-header">
+      <h2>{% if search_q %}"{{ search_q }}"{% elif active_cat %}{{ active_cat }}{% else %}Results{% endif %} <span class="results-count">{{ all_products|length }} found</span></h2>
+    </div>
+    {% if all_products %}
+    <div class="products-grid">{% for p in all_products %}{% include 'buyer/_product_card.html' %}{% endfor %}</div>
+    {% else %}
+    <div class="dash-empty"><p>No results found. <a href="{{ url_for('buyer.home') }}">Clear filters</a></p></div>
+    {% endif %}
+  </section>
+  {% else %}
+  <section id="products" style="margin-bottom:3rem">
+    <div class="dash-section-hdr" style="margin-bottom:1.25rem">
+      <h2><span class="sic si-b"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>New Arrivals</h2>
+      <a href="{{ url_for('buyer.home', sort='latest') }}">See all</a>
+    </div>
+    {% if recent %}
+    <div class="products-grid">{% for p in recent %}{% include 'buyer/_product_card.html' %}{% endfor %}</div>
+    {% else %}
+    <div class="dash-empty"><p>No products yet — check back soon.</p></div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.auc-timer[data-end],.bid-timer[data-end]').forEach(el => {
+  function tick() {
+    const raw = el.dataset.end;
+    const end = new Date((raw.includes('T') ? raw : raw.replace(' ','T')) + (raw.includes('+') ? '' : 'Z'));
+    const diff = Math.max(0, Math.floor((end - Date.now()) / 1000));
+    if (!diff) { el.textContent = 'Ended'; return; }
+    const d = Math.floor(diff/86400), h = Math.floor((diff%86400)/3600),
+          m = Math.floor((diff%3600)/60), s = diff%60;
+    el.textContent = d > 0 ? d+'d '+h+'h '+m+'m' : h > 0 ? h+'h '+m+'m '+s+'s' : m+'m '+s+'s';
+    setTimeout(tick, 1000);
+  }
+  tick();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% block title %}Return Product — QuickDealr{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Page Shell ─────────────────────────────── */
+  .rp-page{max-width:780px;margin:0 auto;padding:32px 16px 60px}
+  .rp-back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.8rem;font-weight:600;text-decoration:none;margin-bottom:20px;transition:color .15s}
+  .rp-back:hover{color:var(--text)}
+  .rp-back svg{flex-shrink:0}
+  .rp-title{font-size:1.5rem;font-weight:800;letter-spacing:-.03em;color:var(--text);margin-bottom:4px}
+  .rp-subtitle{font-size:.83rem;color:var(--muted);margin-bottom:28px}
+
+  /* ── Cards ──────────────────────────────────── */
+  .rp-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px}
+  .rp-card-header{padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .rp-card-header-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .rp-card-header-icon.blue{background:rgba(79,110,247,.15)}
+  .rp-card-header-icon.orange{background:rgba(245,158,11,.15)}
+  .rp-card-header-icon.green{background:rgba(34,197,94,.15)}
+  .rp-card-header h2{font-size:.9rem;font-weight:700;color:var(--text)}
+  .rp-card-body{padding:20px}
+
+  /* ── Product Info Row ───────────────────────── */
+  .rp-product-row{display:flex;align-items:center;gap:16px}
+  .rp-product-img{width:76px;height:76px;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:var(--surface2);flex-shrink:0}
+  .rp-product-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:4px}
+  .rp-product-meta{font-size:.78rem;color:var(--muted);line-height:1.7}
+  .rp-product-meta strong{color:var(--text)}
+  .rp-order-id{font-family:monospace;font-size:.85rem;font-weight:700;color:var(--accent)}
+
+  /* ── Eligibility Banner ─────────────────────── */
+  .rp-eligibility{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:10px;font-size:.83rem;font-weight:500;margin-bottom:0}
+  .rp-eligible{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#22c55e}
+  .rp-ineligible{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444}
+  .rp-eligibility svg{flex-shrink:0}
+  .rp-eligibility-text strong{display:block;font-weight:700;font-size:.85rem}
+  .rp-eligibility-text span{opacity:.8}
+
+  /* ── Already Submitted Badge ────────────────── */
+  .rp-submitted{background:rgba(79,110,247,.06);border:1px solid rgba(79,110,247,.2);border-radius:12px;padding:20px}
+  .rp-submitted-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .rp-submitted-icon{width:38px;height:38px;border-radius:10px;background:rgba(79,110,247,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .rp-submitted-title{font-size:.95rem;font-weight:700;color:var(--text)}
+  .rp-submitted-sub{font-size:.78rem;color:var(--muted)}
+  .rp-status-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .status-pending{background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+  .status-approved{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2)}
+  .status-rejected{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+  .status-processing{background:rgba(79,110,247,.1);color:#4f6ef7;border:1px solid rgba(79,110,247,.2)}
+  .status-completed{background:rgba(34,197,94,.12);color:#16a34a;border:1px solid rgba(34,197,94,.25)}
+  .rp-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .rp-detail-item label{display:block;font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+  .rp-detail-item span{font-size:.83rem;color:var(--text);font-weight:500}
+  .rp-return-img{margin-top:12px}
+  .rp-return-img label{display:block;font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px}
+  .rp-return-img img{width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--border)}
+
+  /* ── Form ───────────────────────────────────── */
+  .rp-form-fieldset{border:none;padding:0;margin:0}
+  .rp-form-group{margin-bottom:18px}
+  .rp-label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em}
+  .rp-label span{color:#ef4444;margin-left:2px}
+  .rp-select,.rp-textarea,.rp-file-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.88rem;padding:10px 14px;outline:none;transition:border-color .2s,box-shadow .2s}
+  .rp-select:focus,.rp-textarea:focus,.rp-file-input:focus{border-color:var(--accent,#4f6ef7);box-shadow:0 0 0 3px rgba(79,110,247,.12)}
+  .rp-textarea{resize:vertical;min-height:100px;line-height:1.55}
+  .rp-file-input{padding:8px 12px;cursor:pointer}
+  .rp-file-hint{font-size:.72rem;color:var(--muted);margin-top:5px}
+
+  /* ── Submit Btn ─────────────────────────────── */
+  .rp-submit-btn{width:100%;padding:13px;background:var(--accent,#4f6ef7);border:none;border-radius:9px;color:#fff;font-size:.92rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.01em}
+  .rp-submit-btn:hover{background:#3b5bf0;transform:translateY(-1px);box-shadow:0 4px 16px rgba(79,110,247,.3)}
+  .rp-submit-btn:active{transform:translateY(0)}
+  .rp-submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+  /* ── Flash messages ─────────────────────────── */
+  .rp-flash{padding:12px 16px;border-radius:9px;font-size:.83rem;font-weight:600;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+  .rp-flash.success{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:#22c55e}
+  .rp-flash.error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#ef4444}
+
+  @media(max-width:600px){
+    .rp-product-img{width:56px;height:56px}
+    .rp-detail-grid{grid-template-columns:1fr}
+    .rp-title{font-size:1.2rem}
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rp-page">
+
+  <!-- Back link -->
+  <a href="{{ url_for('buyer.orders') }}" class="rp-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to My Orders
+  </a>
+
+  <h1 class="rp-title">Return Product</h1>
+  <p class="rp-subtitle">Request a return within {{ 7 }} days of delivery</p>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="rp-flash {{ category }}">
+      {% if category == 'success' %}
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      {% else %}
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      {% endif %}
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- ── Product Details Card ────────────────── -->
+  <div class="rp-card">
+    <div class="rp-card-header">
+      <div class="rp-card-header-icon blue">
+        <svg width="16" height="16" fill="none" stroke="#4f6ef7" stroke-width="2.2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <h2>Order Details</h2>
+    </div>
+    <div class="rp-card-body">
+      <div class="rp-product-row">
+        <img src="{{ order['product_image'] or 'https://placehold.co/76x76/1e2333/4a5168?text=?' }}"
+             alt="{{ order['product_name'] }}" class="rp-product-img">
+        <div style="flex:1;min-width:0">
+          <div class="rp-product-name">{{ order['product_name'] }}</div>
+          <div class="rp-product-meta">
+            Order ID: <span class="rp-order-id">#QD{{ "%06d"|format(order['id']) }}</span><br>
+            Quantity: <strong>{{ order['quantity'] }}</strong><br>
+            Amount Paid: <strong>&#8377;{{ "{:,.2f}".format(order['total_amount'] or order['amount']) }}</strong><br>
+            {% if delivered_date %}
+            Delivered On: <strong>{{ delivered_date.strftime('%d %b %Y') }}</strong>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Return Eligibility Banner ──────────── -->
+  <div class="rp-card">
+    <div class="rp-card-header">
+      <div class="rp-card-header-icon {{ 'green' if is_eligible else 'orange' }}">
+        <svg width="16" height="16" fill="none" stroke="{{ '#22c55e' if is_eligible else '#f59e0b' }}" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <h2>Return Eligibility</h2>
+    </div>
+    <div class="rp-card-body">
+      {% if is_eligible %}
+      <div class="rp-eligibility rp-eligible">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div class="rp-eligibility-text">
+          <strong>Return available within 7 days of delivery</strong>
+          <span>You have <strong>{{ days_left }} day{{ 's' if days_left != 1 else '' }}</strong> left to request a return.</span>
+        </div>
+      </div>
+      {% else %}
+      <div class="rp-eligibility rp-ineligible">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        <div class="rp-eligibility-text">
+          <strong>Return window has expired</strong>
+          <span>The 7-day return period for this order has ended.</span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Already Submitted / Form ───────────── -->
+  {% if existing_return %}
+  <!-- Return already submitted -->
+  <div class="rp-card">
+    <div class="rp-card-header">
+      <div class="rp-card-header-icon blue">
+        <svg width="16" height="16" fill="none" stroke="#4f6ef7" stroke-width="2.2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <h2>Return Request Status</h2>
+    </div>
+    <div class="rp-card-body">
+      <div class="rp-submitted">
+        <div class="rp-submitted-head">
+          <div class="rp-submitted-icon">
+            <svg width="18" height="18" fill="none" stroke="#4f6ef7" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <div class="rp-submitted-title">Return Request Submitted</div>
+            <div class="rp-submitted-sub">Our team will review your request soon.</div>
+          </div>
+          <span class="rp-status-pill status-{{ existing_return['status'] }}" style="margin-left:auto">
+            {{ existing_return['status'].title() }}
+          </span>
+        </div>
+
+        <div class="rp-detail-grid">
+          <div class="rp-detail-item">
+            <label>Reason</label>
+            <span>{{ existing_return['reason'] }}</span>
+          </div>
+          <div class="rp-detail-item">
+            <label>Submitted On</label>
+            <span>{{ existing_return['created_at'][:16] }}</span>
+          </div>
+          {% if existing_return['description'] %}
+          <div class="rp-detail-item" style="grid-column:1/-1">
+            <label>Description</label>
+            <span>{{ existing_return['description'] }}</span>
+          </div>
+          {% endif %}
+          {% if existing_return['admin_note'] %}
+          <div class="rp-detail-item" style="grid-column:1/-1">
+            <label>Admin Note</label>
+            <span>{{ existing_return['admin_note'] }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if existing_return['image_path'] %}
+        <div class="rp-return-img">
+          <label>Attached Image</label>
+          <img src="{{ existing_return['image_path'] }}" alt="Return image">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% elif is_eligible %}
+  <!-- Return form -->
+  <div class="rp-card">
+    <div class="rp-card-header">
+      <div class="rp-card-header-icon orange">
+        <svg width="16" height="16" fill="none" stroke="#f59e0b" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+      </div>
+      <h2>Return Request Form</h2>
+    </div>
+    <div class="rp-card-body">
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <fieldset class="rp-form-fieldset">
+
+          <!-- Reason -->
+          <div class="rp-form-group">
+            <label class="rp-label" for="reason">Reason for Return <span>*</span></label>
+            <select id="reason" name="reason" class="rp-select" required>
+              <option value="" disabled selected>— Select a reason —</option>
+              <option value="Damaged product">Damaged product</option>
+              <option value="Wrong item received">Wrong item received</option>
+              <option value="Quality not as expected">Quality not as expected</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <!-- Description -->
+          <div class="rp-form-group">
+            <label class="rp-label" for="description">Additional Description</label>
+            <textarea id="description" name="description" class="rp-textarea"
+              placeholder="Describe the issue in more detail (optional)…"></textarea>
+          </div>
+
+          <!-- Image upload -->
+          <div class="rp-form-group">
+            <label class="rp-label" for="return_image">Upload Image <em style="font-weight:400;text-transform:none;font-style:normal;color:var(--muted)">(optional)</em></label>
+            <input type="file" id="return_image" name="return_image"
+                   class="rp-file-input" accept=".jpg,.jpeg,.png,.webp,.gif">
+            <div class="rp-file-hint">Accepted: JPG, PNG, WEBP, GIF — max 5MB</div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="rp-submit-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Submit Return Request
+          </button>
+
+        </fieldset>
+      </form>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Not eligible, no form -->
+  <div class="rp-card">
+    <div class="rp-card-body" style="text-align:center;padding:36px 20px">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"
+           style="opacity:.25;margin-bottom:12px"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <p style="font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:6px">Return Not Available</p>
+      <p style="font-size:.82rem;color:var(--muted)">The 7-day return window for this order has closed.</p>
+      <a href="{{ url_for('buyer.orders') }}" style="display:inline-block;margin-top:16px;padding:9px 22px;background:var(--accent);color:#fff;border-radius:8px;font-size:.83rem;font-weight:600;text-decoration:none">Back to Orders</a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
