@@ -1,5 +1,5 @@
 import os
-from user_app import app, socketio
+from user_app import user_app as app, socketio
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
