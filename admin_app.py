@@ -8,6 +8,7 @@ Shares the same database as user_app (port 5000).
 import os
 from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, session, redirect, url_for
+from flask_socketio import SocketIO
 
 from models import init_db, close_db, valid_session, get_wallet
 from utils import seconds_left, generate_csrf, ROLE_ADMIN
@@ -21,6 +22,7 @@ admin_app = Flask(__name__,
                   static_folder='static')
 
 admin_app.secret_key = os.environ.get('ADMIN_SECRET_KEY', 'admin_qd_v6_secret_key_change_me')
+socketio = SocketIO(admin_app, cors_allowed_origins='*', async_mode='threading')   
 admin_app.config.update(
     SESSION_COOKIE_NAME    = 'qd_admin_session',
     SESSION_COOKIE_HTTPONLY= True,
