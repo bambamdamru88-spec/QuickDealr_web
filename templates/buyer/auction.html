@@ -150,7 +150,7 @@
               <span>{{ bid['username'] }}</span>
             </div>
             <span class="bid-amt">&#8377;{{ "{:,.2f}".format(bid['amount']) }}</span>
-            <span class="bid-time">{{ bid['created_at'][11:16] if bid['created_at'] else '' }}</span>
+            <span class="bid-time">{{ bid['created_at'].strftime('%H:%M') if bid['created_at'] else '' }}</span>
           </div>
           {% else %}
           <div class="no-bids">No bids placed yet — be the first!</div>

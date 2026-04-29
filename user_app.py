@@ -144,11 +144,13 @@ def ai_chat():
 #  Error handlers 
 @user_app.errorhandler(403)
 def forbidden(e):
-    return render_template('unauthorized.html', reason='Access denied.'), 403
+    from routes.user_routes import _ctx
+    return render_template('unauthorized.html', reason='Access denied.', **_ctx()), 403
 
 @user_app.errorhandler(404)
 def not_found(e):
-    return render_template('404.html'), 404
+    from routes.user_routes import _ctx
+    return render_template('404.html', **_ctx()), 404
 
 #  SocketIO handlers 
 @socketio.on('join_auction')

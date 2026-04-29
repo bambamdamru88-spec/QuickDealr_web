@@ -215,9 +215,8 @@
     </div>
     {% if user_bids %}
     <div class="bids-full-grid">
-      {% for b in user_bids %}
-      <a href="{{ url_for('buyer.auction_detail', pid=b['product_id']) }}" class="bid-card {% if b['auction_end'] and b['auction_end'] > now_utc and b['is_leading'] %}bid-leading{% elif b['auction_end'] and b['auction_end'] > now_utc and not b['is_leading'] %}bid-outbid{% else %}bid-ended{% endif %}">
-        {% if b['product_image'] %}
+      {% for b in user_bids %}  
+        <a href="{{ url_for('buyer.auction_detail', pid=b['product_id']) }}" class="bid-card {% if b['auction_end'] and b['auction_end']|string > now_utc and b['is_leading'] %}bid-leading{% elif b['auction_end'] and b['auction_end']|string > now_utc and not b['is_leading'] %}bid-outbid{% else %}bid-ended{% endif %}">          {% if b['product_image'] %}
         <img class="bid-card-img" src="{{ b['product_image'] }}" alt="{{ b['product_name'] }}" loading="lazy">
         {% else %}
         <div class="bid-card-img bid-card-img-ph">
@@ -228,7 +227,7 @@
           <div class="bid-card-name">{{ b['product_name']|truncate(32) }}</div>
           <div class="bid-card-amount">&#8377;{{ "{:,.0f}".format(b['amount']) }}</div>
           <div class="bid-card-footer">
-            {% if b['auction_end'] and b['auction_end'] > now_utc %}
+            {% if b['auction_end'] and b['auction_end']|string > now_utc %}
               <span class="spill {% if b['is_leading'] %}sp-lead{% else %}sp-out{% endif %}">{% if b['is_leading'] %}&#10003; Winning{% else %}&#8593; Outbid{% endif %}</span>
               <span class="bid-timer" data-end="{{ b['auction_end'] }}">—</span>
             {% else %}
