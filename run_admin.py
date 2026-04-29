@@ -1,12 +1,8 @@
-# run_admin.py
-# -*- coding: utf-8 -*-
-"""Start QuickDealr Admin App on port 5001"""
-from admin_app import admin_app   # ← no socketio import
+import os
+from admin_app import admin_app as app, socketio
 from models import init_db
 
 if __name__ == '__main__':
     init_db()
-    print("\n  QuickDealr - Admin App")
-    print("  http://localhost:5001")
-    print("  Login: admin / admin123\n")
-    admin_app.run(debug=True, port=5001)
+    port = int(os.environ.get('PORT', 5001))
+    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
