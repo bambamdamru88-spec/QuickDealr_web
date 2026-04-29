@@ -25,12 +25,42 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 # ── Connection ─────────────────────────────────────────────────────────────────
 
 def get_db():
-    """Get a per-request DB connection stored in Flask's g object."""
     if 'db' not in g:
         g.db = psycopg2.connect(DATABASE_URL)
         g.db.cursor_factory = psycopg2.extras.RealDictCursor
     return g.db
 
+
+class _DBWrapper:
+    """Makes psycopg2 connection behave like sqlite3 — supports db.execute() and ? placeholders."""
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=()):
+        sql = sql.replace('?', '%s')
+        cur = self._conn.cursor()
+        cur.execute(sql, params)
+        return cur
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+    def cursor(self):
+        return self._conn.cursor()
+
+
+def get_db():
+    if 'db' not in g:
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.cursor_factory = psycopg2.extras.RealDictCursor
+        g.db = _DBWrapper(conn)
+    return g.db
 
 def close_db(e=None):
     db = g.pop('db', None)
