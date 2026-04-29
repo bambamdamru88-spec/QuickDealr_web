@@ -344,7 +344,7 @@
               {% if u['is_whitelisted'] %}Whitelisted{% else %}Not Whitelisted{% endif %}
             </button>
           </td>
-          <td class="mono muted" style="font-size:.75rem">{{ u['created_at'][:10] if u['created_at'] else '—' }}</td>
+          <td class="mono muted" style="font-size:.75rem">{{ u['created_at'].strftime('%Y-%m-%d') if u['created_at'] else '—' }}</td>
           <td>
             {% if u['id'] != session.get('user_id') %}
             <form method="POST" action="{{ url_for('admin.toggle_user', uid=u['id']) }}" onsubmit="return confirm('{{ 'Deactivate' if u['is_active'] else 'Activate' }} this user?')">
@@ -399,7 +399,7 @@
           </td>
           <td class="muted mono" style="font-size:.75rem">{{ t['method'] | upper }}</td>
           <td class="muted" style="font-size:.77rem">{{ t['description'] or '—' }}</td>
-          <td class="mono muted" style="font-size:.75rem">{{ t['created_at'][:16] if t['created_at'] else '—' }}</td>
+          <td class="mono muted" style="font-size:.75rem">{{ t['created_at'].strftime('%Y-%m-%d %H:%M') if t['created_at'] else '—' }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -461,7 +461,7 @@
       <tbody>
         {% for s in sec_logs %}
         <tr>
-          <td class="mono muted" style="font-size:.73rem">{{ s['created_at'][:16] if s['created_at'] else '—' }}</td>
+          <td class="mono muted" style="font-size:.73rem">{{ s['created_at'].strftime('%Y-%m-%d %H:%M') if s['created_at'] else '—' }}</td>
           <td>
             <span class="badge {% if 'bot' in s['action'] or 'fail' in s['action'] or 'block' in s['action'] %}badge-red{% else %}badge-muted{% endif %}">
               {{ s['action'] }}
@@ -501,7 +501,7 @@
           <td class="mono" style="color:var(--red)">{{ b['ip_address'] }}</td>
           <td class="muted" style="font-size:.77rem">{{ b['reason'] or '—' }}</td>
           <td class="mono muted" style="font-size:.73rem">{{ b['blocked_at'][:16] if b['blocked_at'] else '—' }}</td>
-          <td class="mono" style="font-size:.73rem;color:var(--amber)">{{ b['expires_at'][:16] if b['expires_at'] else 'Permanent' }}</td>
+          <td class="mono" style="font-size:.73rem;color:var(--amber)">{{ b['expires_at'].strftime('%Y-%m-%d %H:%M') if b['expires_at'] else 'Permanent' }}</td>
           <td>
             <form method="POST" action="{{ url_for('admin.unblock_ip') }}" onsubmit="return confirm('Unblock this IP?')">
               <input type="hidden" name="_csrf" value="{{ g.csrf_token }}">
