@@ -69,6 +69,20 @@ CREATE TABLE IF NOT EXISTS bids (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS addresses (
+    id           SERIAL PRIMARY KEY,
+    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    full_name    TEXT    NOT NULL,
+    phone        TEXT    NOT NULL,
+    city         TEXT    NOT NULL,
+    state        TEXT    NOT NULL,
+    pincode      TEXT    NOT NULL,
+    landmark     TEXT    DEFAULT '',
+    full_address TEXT    NOT NULL,
+    is_default   INTEGER DEFAULT 0,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS orders (
     id              SERIAL PRIMARY KEY,
     buyer_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -94,19 +108,6 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS addresses (
-    id           SERIAL PRIMARY KEY,
-    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    full_name    TEXT    NOT NULL,
-    phone        TEXT    NOT NULL,
-    city         TEXT    NOT NULL,
-    state        TEXT    NOT NULL,
-    pincode      TEXT    NOT NULL,
-    landmark     TEXT    DEFAULT '',
-    full_address TEXT    NOT NULL,
-    is_default   INTEGER DEFAULT 0,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 CREATE TABLE IF NOT EXISTS cart (
     id         SERIAL PRIMARY KEY,
